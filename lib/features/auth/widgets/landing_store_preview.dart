@@ -43,33 +43,33 @@ class _LandingStorePreviewState extends State<LandingStorePreview>
   void initState() {
     super.initState();
 
-    // Initialize animations immediately for better performance
-    if (kReleaseMode) {
-      _previewController = AnimationController(
-        duration: const Duration(milliseconds: 2000),
-        vsync: this,
-      );
+    // Defer animation initialization to improve initial load performance
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (kReleaseMode) {
+        _previewController = AnimationController(
+          duration: const Duration(milliseconds: 2000),
+          vsync: this,
+        );
 
-      _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-        CurvedAnimation(parent: _previewController!, curve: Curves.easeInOut),
-      );
+        _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+          CurvedAnimation(parent: _previewController!, curve: Curves.easeInOut),
+        );
 
-      _slideAnimation = Tween<Offset>(
-        begin: const Offset(0, 0.2),
-        end: Offset.zero,
-      ).animate(CurvedAnimation(parent: _previewController!, curve: Curves.elasticOut));
+        _slideAnimation = Tween<Offset>(
+          begin: const Offset(0, 0.2),
+          end: Offset.zero,
+        ).animate(CurvedAnimation(parent: _previewController!, curve: Curves.elasticOut));
 
-      // Defer controller start to improve initial load performance
-      WidgetsBinding.instance.addPostFrameCallback((_) {
         _previewController?.forward();
+
         // Auto-rotate through products with longer intervals to reduce CPU usage
         Future.delayed(const Duration(seconds: 4), _rotatePreview);
-      });
-    } else {
-      // In debug mode, use static animations for better performance
-      _fadeAnimation = AlwaysStoppedAnimation(1.0);
-      _slideAnimation = AlwaysStoppedAnimation(Offset.zero);
-    }
+      } else {
+        // In debug mode, use static animations for better performance
+        _fadeAnimation = AlwaysStoppedAnimation(1.0);
+        _slideAnimation = AlwaysStoppedAnimation(Offset.zero);
+      }
+    });
   }
 
   @override
