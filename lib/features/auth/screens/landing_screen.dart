@@ -20,6 +20,11 @@ class _LandingScreenState extends State<LandingScreen>
   final ScrollController _scrollController = ScrollController();
   bool _isScrolled = false;
 
+  // Global keys for sections
+  final GlobalKey _featuresKey = GlobalKey();
+  final GlobalKey _pricingKey = GlobalKey();
+  final GlobalKey _aboutUsKey = GlobalKey();
+
   @override
   void initState() {
     super.initState();
@@ -73,6 +78,15 @@ class _LandingScreenState extends State<LandingScreen>
     });
   }
 
+  void _scrollToSection(GlobalKey key) {
+    final context = key.currentContext;
+    if (context != null) {
+      Scrollable.ensureVisible(context, duration: const Duration(milliseconds: 500), curve: Curves.easeInOut);
+    }
+  }
+
+  bool get _isMobile => MediaQuery.of(context).size.width < 768;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -97,7 +111,10 @@ class _LandingScreenState extends State<LandingScreen>
           controller: _scrollController,
           child: Column(
             children: [
-              _buildHeroSection(),
+              Padding(
+                padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top + (_isMobile ? 80.0 : 56.0)),
+                child: _buildHeroSection(),
+              ),
               _buildFeaturesSection(),
               _buildHowItWorksSection(),
               _buildStatsSection(),
@@ -135,17 +152,39 @@ class _LandingScreenState extends State<LandingScreen>
             ),
           ),
           const SizedBox(width: 12),
-          const Text(
+          Text(
             'PopStore',
             style: TextStyle(
               color: Colors.white,
-              fontSize: 24,
+              fontSize: _isMobile ? 20 : 24,
               fontWeight: FontWeight.bold,
             ),
           ),
         ],
       ),
-      actions: [
+      actions: _isMobile ? [
+        IconButton(
+          onPressed: () {
+            Navigator.pushNamed(context, '/login');
+          },
+          icon: const Icon(Icons.login, color: Colors.white),
+        ),
+        Container(
+          margin: const EdgeInsets.only(right: 8),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+            ),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: IconButton(
+            onPressed: () {
+              Navigator.pushNamed(context, '/signup');
+            },
+            icon: const Icon(Icons.person_add, color: Colors.white),
+          ),
+        ),
+      ] : [
         TextButton(
           onPressed: () {
             Navigator.pushNamed(context, '/login');
@@ -193,214 +232,323 @@ class _LandingScreenState extends State<LandingScreen>
 
   Widget _buildHeroSection() {
     return Container(
-      height: MediaQuery.of(context).size.height * 0.9,
-      padding: const EdgeInsets.symmetric(horizontal: 24),
+      height: _isMobile ? null : MediaQuery.of(context).size.height * 0.8,
+      padding: EdgeInsets.symmetric(horizontal: _isMobile ? 16 : 24),
       child: FadeTransition(
         opacity: _heroFadeAnimation,
-        child: Row(
+        child: _isMobile ? Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _buildHeroText(),
+            const SizedBox(height: 32),
+            _buildHeroButtons(),
+            const SizedBox(height: 32),
+            _buildTrustIndicators(),
+            const SizedBox(height: 32),
+            _buildHeroImage(),
+          ],
+        ) : Row(
           children: [
             Expanded(
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF10B981).withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: const Color(0xFF10B981).withOpacity(0.3),
-                      ),
-                    ),
-                    child: const Text(
-                      '🚀 #1 Instant Ecommerce Platform',
-                      style: TextStyle(
-                        color: Color(0xFF10B981),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  const Text(
-                    'Create Stunning\nEcommerce Websites\nin Minutes',
-                    style: TextStyle(
-                      fontSize: 56,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      height: 1.1,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Launch your online store instantly with our AI-powered platform. No coding required, just beautiful results.',
-                    style: TextStyle(
-                      fontSize: 20,
-                      color: Colors.white.withOpacity(0.8),
-                      height: 1.5,
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        Container(
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
-                            ),
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFF6366F1).withOpacity(0.4),
-                                blurRadius: 20,
-                                offset: const Offset(0, 8),
-                              ),
-                            ],
-                          ),
-                          child: ElevatedButton.icon(
-                            icon: const Icon(Icons.rocket_launch, size: 24),
-                            label: const Text(
-                              'Start Creating Now',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            onPressed: () {
-                              HapticFeedback.lightImpact();
-                              Navigator.pushNamed(context, '/signup');
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.transparent,
-                              shadowColor: Colors.transparent,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 32,
-                                vertical: 20,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 20),
-                        TextButton.icon(
-                          icon: const Icon(
-                            Icons.play_circle_fill,
-                            color: Color(0xFF6366F1),
-                            size: 24,
-                          ),
-                          label: const Text(
-                            'Watch Demo',
-                            style: TextStyle(
-                              color: Color(0xFF6366F1),
-                              fontSize: 18,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          onPressed: () {
-                            // Handle demo video
-                            HapticFeedback.lightImpact();
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        _buildTrustIndicator('4.9/5 Rating', Icons.star, const Color(0xFFF59E0B)),
-                        const SizedBox(width: 32),
-                        _buildTrustIndicator('10K+ Stores Created', Icons.store, const Color(0xFF10B981)),
-                        const SizedBox(width: 32),
-                        _buildTrustIndicator('99.9% Uptime', Icons.verified, const Color(0xFF06B6D4)),
-                      ],
-                    ),
-                  ),
+                  _buildHeroText(),
+                  const SizedBox(height: 32),
+                  _buildHeroButtons(),
+                  const SizedBox(height: 32),
+                  _buildTrustIndicators(),
                 ],
               ),
             ),
             const SizedBox(width: 80),
             Expanded(
-              child: Container(
-                height: 600,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF6366F1).withOpacity(0.3),
-                      blurRadius: 40,
-                      offset: const Offset(0, 20),
-                    ),
-                  ],
+              child: _buildHeroImage(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeroText() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          decoration: BoxDecoration(
+            color: const Color(0xFF10B981).withOpacity(0.2),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: const Color(0xFF10B981).withOpacity(0.3),
+            ),
+          ),
+          child: const Text(
+            '🚀 #1 Instant Ecommerce Platform',
+            style: TextStyle(
+              color: Color(0xFF10B981),
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Text(
+          'Create Stunning\nEcommerce Websites\nin Minutes',
+          style: TextStyle(
+            fontSize: _isMobile ? 32 : 48,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+            height: 1.1,
+          ),
+          textAlign: _isMobile ? TextAlign.center : TextAlign.left,
+        ),
+        const SizedBox(height: 12),
+        Text(
+          'Launch your online store instantly with our AI-powered platform. No coding required, just beautiful results.',
+          style: TextStyle(
+            fontSize: _isMobile ? 16 : 18,
+            color: Colors.white.withOpacity(0.8),
+            height: 1.5,
+          ),
+          textAlign: _isMobile ? TextAlign.center : TextAlign.left,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHeroButtons() {
+    return _isMobile ? Column(
+      children: [
+        Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+            ),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF6366F1).withOpacity(0.4),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: ElevatedButton.icon(
+            icon: const Icon(Icons.rocket_launch, size: 24),
+            label: const Text(
+              'Start Creating Now',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            onPressed: () {
+              HapticFeedback.lightImpact();
+              Navigator.pushNamed(context, '/signup');
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.transparent,
+              shadowColor: Colors.transparent,
+              padding: const EdgeInsets.symmetric(
+                horizontal: 32,
+                vertical: 16,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        TextButton.icon(
+          icon: const Icon(
+            Icons.play_circle_fill,
+            color: Color(0xFF6366F1),
+            size: 24,
+          ),
+          label: const Text(
+            'Watch Demo',
+            style: TextStyle(
+              color: Color(0xFF6366F1),
+              fontSize: 18,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          onPressed: () {
+            // Handle demo video
+            HapticFeedback.lightImpact();
+          },
+        ),
+      ],
+    ) : SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+              ),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF6366F1).withOpacity(0.4),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
                 ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(24),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          Colors.white.withOpacity(0.1),
-                          Colors.white.withOpacity(0.05),
-                        ],
-                      ),
-                      border: Border.all(
-                        color: Colors.white.withOpacity(0.2),
-                      ),
-                    ),
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(40),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  const Color(0xFF6366F1).withOpacity(0.2),
-                                  const Color(0xFF8B5CF6).withOpacity(0.2),
-                                ],
-                              ),
-                              borderRadius: BorderRadius.circular(100),
-                            ),
-                            child: const Icon(
-                              Icons.web,
-                              color: Colors.white,
-                              size: 80,
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          const Text(
-                            'Your Store Preview',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'See how beautiful your store will look',
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.7),
-                              fontSize: 16,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+              ],
+            ),
+            child: ElevatedButton.icon(
+              icon: const Icon(Icons.rocket_launch, size: 24),
+              label: const Text(
+                'Start Creating Now',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              onPressed: () {
+                HapticFeedback.lightImpact();
+                Navigator.pushNamed(context, '/signup');
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.transparent,
+                shadowColor: Colors.transparent,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 16,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
                 ),
               ),
             ),
-          ],
+          ),
+          const SizedBox(width: 20),
+          TextButton.icon(
+            icon: const Icon(
+              Icons.play_circle_fill,
+              color: Color(0xFF6366F1),
+              size: 24,
+            ),
+            label: const Text(
+              'Watch Demo',
+              style: TextStyle(
+                color: Color(0xFF6366F1),
+                fontSize: 18,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            onPressed: () {
+              // Handle demo video
+              HapticFeedback.lightImpact();
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTrustIndicators() {
+    return _isMobile ? Column(
+      children: [
+        _buildTrustIndicator('4.9/5', Icons.star, const Color(0xFFF59E0B)),
+        const SizedBox(height: 16),
+        _buildTrustIndicator('10K+ Stores', Icons.store, const Color(0xFF10B981)),
+        const SizedBox(height: 16),
+        _buildTrustIndicator('99.9% Uptime', Icons.verified, const Color(0xFF06B6D4)),
+      ],
+    ) : SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          _buildTrustIndicator('4.9/5', Icons.star, const Color(0xFFF59E0B)),
+          const SizedBox(width: 24),
+          _buildTrustIndicator('10K+ Stores', Icons.store, const Color(0xFF10B981)),
+          const SizedBox(width: 24),
+          _buildTrustIndicator('99.9% Uptime', Icons.verified, const Color(0xFF06B6D4)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeroImage() {
+    return Container(
+      height: _isMobile ? 300 : 500,
+      width: _isMobile ? double.infinity : null,
+      margin: _isMobile ? const EdgeInsets.symmetric(horizontal: 16) : EdgeInsets.zero,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF6366F1).withOpacity(0.3),
+            blurRadius: 40,
+            offset: const Offset(0, 20),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.white.withOpacity(0.1),
+                Colors.white.withOpacity(0.05),
+              ],
+            ),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.2),
+            ),
+          ),
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(40),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        const Color(0xFF6366F1).withOpacity(0.2),
+                        const Color(0xFF8B5CF6).withOpacity(0.2),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(100),
+                  ),
+                  child: const Icon(
+                    Icons.web,
+                    color: Colors.white,
+                    size: 80,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  'Your Store Preview',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: _isMobile ? 20 : 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'See how beautiful your store will look',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.7),
+                    fontSize: _isMobile ? 14 : 16,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -432,80 +580,83 @@ class _LandingScreenState extends State<LandingScreen>
 
   Widget _buildFeaturesSection() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 80),
-      child: Column(
-        children: [
-          const Text(
-            'Why Choose PopStore?',
-            style: TextStyle(
-              fontSize: 48,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
+      key: _featuresKey,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: _isMobile ? 16 : 24, vertical: _isMobile ? 40 : 80),
+        child: Column(
+          children: [
+            Text(
+              'Why Choose PopStore?',
+              style: TextStyle(
+                fontSize: _isMobile ? 32 : 48,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Everything you need to create and manage a successful online store',
-            style: TextStyle(
-              fontSize: 20,
-              color: Colors.white.withOpacity(0.7),
+            const SizedBox(height: 16),
+            Text(
+              'Everything you need to create and manage a successful online store',
+              style: TextStyle(
+                fontSize: _isMobile ? 16 : 20,
+                color: Colors.white.withOpacity(0.7),
+              ),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 80),
-          AnimatedBuilder(
-            animation: _featuresSlideAnimation,
-            builder: (context, child) {
-              return Transform.translate(
-                offset: Offset(0, _featuresSlideAnimation.value),
-                child: Wrap(
-                  spacing: 40,
-                  runSpacing: 40,
-                  alignment: WrapAlignment.center,
-                  children: [
-                    _buildFeatureCard(
-                      icon: Icons.electric_bolt,
-                      title: 'Lightning Fast Setup',
-                      description: 'Create your store in under 5 minutes with our intuitive builder',
-                      gradient: const [Color(0xFFF59E0B), Color(0xFFFBBF24)],
-                    ),
-                    _buildFeatureCard(
-                      icon: Icons.palette,
-                      title: 'Beautiful Templates',
-                      description: 'Choose from 100+ professionally designed templates',
-                      gradient: const [Color(0xFFEC4899), Color(0xFFF472B6)],
-                    ),
-                    _buildFeatureCard(
-                      icon: Icons.smartphone,
-                      title: 'Mobile Optimized',
-                      description: 'Your store looks perfect on all devices and screen sizes',
-                      gradient: const [Color(0xFF06B6D4), Color(0xFF0891B2)],
-                    ),
-                    _buildFeatureCard(
-                      icon: Icons.analytics,
-                      title: 'Advanced Analytics',
-                      description: 'Track sales, customers, and performance with detailed insights',
-                      gradient: const [Color(0xFF10B981), Color(0xFF059669)],
-                    ),
-                    _buildFeatureCard(
-                      icon: Icons.payment,
-                      title: 'Secure Payments',
-                      description: 'Accept payments worldwide with integrated payment gateways',
-                      gradient: const [Color(0xFF6366F1), Color(0xFF8B5CF6)],
-                    ),
-                    _buildFeatureCard(
-                      icon: Icons.support_agent,
-                      title: '24/7 Support',
-                      description: 'Get help whenever you need it from our expert support team',
-                      gradient: const [Color(0xFFEF4444), Color(0xFFF87171)],
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-        ],
+            SizedBox(height: _isMobile ? 40 : 80),
+            AnimatedBuilder(
+              animation: _featuresSlideAnimation,
+              builder: (context, child) {
+                return Transform.translate(
+                  offset: Offset(0, _featuresSlideAnimation.value),
+                  child: Wrap(
+                    spacing: _isMobile ? 16 : 40,
+                    runSpacing: _isMobile ? 16 : 40,
+                    alignment: WrapAlignment.center,
+                    children: [
+                      _buildFeatureCard(
+                        icon: Icons.electric_bolt,
+                        title: 'Lightning Fast Setup',
+                        description: 'Create your store in under 5 minutes with our intuitive builder',
+                        gradient: const [Color(0xFFF59E0B), Color(0xFFFBBF24)],
+                      ),
+                      _buildFeatureCard(
+                        icon: Icons.palette,
+                        title: 'Beautiful Templates',
+                        description: 'Choose from 100+ professionally designed templates',
+                        gradient: const [Color(0xFFEC4899), Color(0xFFF472B6)],
+                      ),
+                      _buildFeatureCard(
+                        icon: Icons.smartphone,
+                        title: 'Mobile Optimized',
+                        description: 'Your store looks perfect on all devices and screen sizes',
+                        gradient: const [Color(0xFF06B6D4), Color(0xFF0891B2)],
+                      ),
+                      _buildFeatureCard(
+                        icon: Icons.analytics,
+                        title: 'Advanced Analytics',
+                        description: 'Track sales, customers, and performance with detailed insights',
+                        gradient: const [Color(0xFF10B981), Color(0xFF059669)],
+                      ),
+                      _buildFeatureCard(
+                        icon: Icons.payment,
+                        title: 'Secure Payments',
+                        description: 'Accept payments worldwide with integrated payment gateways',
+                        gradient: const [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                      ),
+                      _buildFeatureCard(
+                        icon: Icons.support_agent,
+                        title: '24/7 Support',
+                        description: 'Get help whenever you need it from our expert support team',
+                        gradient: const [Color(0xFFEF4444), Color(0xFFF87171)],
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -517,8 +668,8 @@ class _LandingScreenState extends State<LandingScreen>
     required List<Color> gradient,
   }) {
     return Container(
-      width: 350,
-      padding: const EdgeInsets.all(32),
+      width: _isMobile ? MediaQuery.of(context).size.width * 0.9 : 350,
+      padding: EdgeInsets.all(_isMobile ? 20 : 32),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.05),
         borderRadius: BorderRadius.circular(20),
@@ -541,14 +692,14 @@ class _LandingScreenState extends State<LandingScreen>
               gradient: LinearGradient(colors: gradient),
               borderRadius: BorderRadius.circular(16),
             ),
-            child: Icon(icon, color: Colors.white, size: 32),
+            child: Icon(icon, color: Colors.white, size: _isMobile ? 24 : 32),
           ),
           const SizedBox(height: 24),
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               color: Colors.white,
-              fontSize: 24,
+              fontSize: _isMobile ? 20 : 24,
               fontWeight: FontWeight.bold,
             ),
             textAlign: TextAlign.center,
@@ -558,7 +709,7 @@ class _LandingScreenState extends State<LandingScreen>
             description,
             style: TextStyle(
               color: Colors.white.withOpacity(0.7),
-              fontSize: 16,
+              fontSize: _isMobile ? 14 : 16,
               height: 1.5,
             ),
             textAlign: TextAlign.center,
@@ -570,7 +721,7 @@ class _LandingScreenState extends State<LandingScreen>
 
   Widget _buildHowItWorksSection() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 80),
+      padding: EdgeInsets.symmetric(horizontal: _isMobile ? 16 : 24, vertical: _isMobile ? 40 : 80),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
@@ -584,10 +735,10 @@ class _LandingScreenState extends State<LandingScreen>
       ),
       child: Column(
         children: [
-          const Text(
+          Text(
             'How It Works',
             style: TextStyle(
-              fontSize: 48,
+              fontSize: _isMobile ? 32 : 48,
               fontWeight: FontWeight.bold,
               color: Colors.white,
             ),
@@ -597,13 +748,43 @@ class _LandingScreenState extends State<LandingScreen>
           Text(
             'Get your store up and running in just 3 simple steps',
             style: TextStyle(
-              fontSize: 20,
+              fontSize: _isMobile ? 16 : 20,
               color: Colors.white.withOpacity(0.7),
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 80),
-          SingleChildScrollView(
+          SizedBox(height: _isMobile ? 40 : 80),
+          _isMobile ? Column(
+            children: [
+              _buildStepCard(
+                step: '01',
+                title: 'Choose Template',
+                description: 'Select from our collection of beautiful, mobile-optimized templates',
+                icon: Icons.design_services,
+                gradient: const [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+              ),
+              const SizedBox(height: 20),
+              _buildStepConnector(),
+              const SizedBox(height: 20),
+              _buildStepCard(
+                step: '02',
+                title: 'Customize & Add Products',
+                description: 'Personalize your store and upload your products with our easy tools',
+                icon: Icons.edit,
+                gradient: const [Color(0xFF10B981), Color(0xFF06B6D4)],
+              ),
+              const SizedBox(height: 20),
+              _buildStepConnector(),
+              const SizedBox(height: 20),
+              _buildStepCard(
+                step: '03',
+                title: 'Launch & Sell',
+                description: 'Go live instantly and start accepting orders from customers worldwide',
+                icon: Icons.rocket_launch,
+                gradient: const [Color(0xFFF59E0B), Color(0xFFFBBF24)],
+              ),
+            ],
+          ) : SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -647,8 +828,8 @@ class _LandingScreenState extends State<LandingScreen>
     required List<Color> gradient,
   }) {
     return Container(
-      width: 300,
-      padding: const EdgeInsets.all(32),
+      width: _isMobile ? MediaQuery.of(context).size.width * 0.9 : 300,
+      padding: EdgeInsets.all(_isMobile ? 20 : 32),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.05),
         borderRadius: BorderRadius.circular(20),
@@ -666,21 +847,21 @@ class _LandingScreenState extends State<LandingScreen>
             ),
             child: Text(
               step,
-              style: const TextStyle(
+              style: TextStyle(
                 color: Colors.white,
-                fontSize: 18,
+                fontSize: _isMobile ? 16 : 18,
                 fontWeight: FontWeight.bold,
               ),
             ),
           ),
           const SizedBox(height: 24),
-          Icon(icon, color: Colors.white, size: 48),
+          Icon(icon, color: Colors.white, size: _isMobile ? 40 : 48),
           const SizedBox(height: 24),
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               color: Colors.white,
-              fontSize: 24,
+              fontSize: _isMobile ? 20 : 24,
               fontWeight: FontWeight.bold,
             ),
             textAlign: TextAlign.center,
@@ -690,7 +871,7 @@ class _LandingScreenState extends State<LandingScreen>
             description,
             style: TextStyle(
               color: Colors.white.withOpacity(0.7),
-              fontSize: 16,
+              fontSize: _isMobile ? 14 : 16,
               height: 1.5,
             ),
             textAlign: TextAlign.center,
@@ -713,7 +894,7 @@ class _LandingScreenState extends State<LandingScreen>
 
   Widget _buildStatsSection() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 80),
+      padding: EdgeInsets.symmetric(horizontal: _isMobile ? 16 : 24, vertical: _isMobile ? 40 : 80),
       child: AnimatedBuilder(
         animation: _statsScaleAnimation,
         builder: (context, child) {
@@ -721,17 +902,27 @@ class _LandingScreenState extends State<LandingScreen>
             scale: _statsScaleAnimation.value,
             child: Column(
               children: [
-                const Text(
+                Text(
                   'Trusted by Thousands',
                   style: TextStyle(
-                    fontSize: 48,
+                    fontSize: _isMobile ? 32 : 48,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 80),
-                SingleChildScrollView(
+                SizedBox(height: _isMobile ? 40 : 80),
+                _isMobile ? Column(
+                  children: [
+                    _buildStatItem('10,000+', 'Stores Created', const Color(0xFF6366F1)),
+                    const SizedBox(height: 40),
+                    _buildStatItem('500K+', 'Products Sold', const Color(0xFF10B981)),
+                    const SizedBox(height: 40),
+                    _buildStatItem('99.9%', 'Uptime', const Color(0xFF06B6D4)),
+                    const SizedBox(height: 40),
+                    _buildStatItem('24/7', 'Support', const Color(0xFFF59E0B)),
+                  ],
+                ) : SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -760,7 +951,7 @@ class _LandingScreenState extends State<LandingScreen>
         Text(
           value,
           style: TextStyle(
-            fontSize: 48,
+            fontSize: _isMobile ? 32 : 48,
             fontWeight: FontWeight.bold,
             color: color,
           ),
@@ -769,7 +960,7 @@ class _LandingScreenState extends State<LandingScreen>
         Text(
           label,
           style: TextStyle(
-            fontSize: 18,
+            fontSize: _isMobile ? 14 : 18,
             color: Colors.white.withOpacity(0.7),
             fontWeight: FontWeight.w500,
           ),
@@ -780,7 +971,7 @@ class _LandingScreenState extends State<LandingScreen>
 
   Widget _buildTestimonialsSection() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 80),
+      padding: EdgeInsets.symmetric(horizontal: _isMobile ? 16 : 24, vertical: _isMobile ? 40 : 80),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
@@ -794,17 +985,43 @@ class _LandingScreenState extends State<LandingScreen>
       ),
       child: Column(
         children: [
-          const Text(
+          Text(
             'What Our Customers Say',
             style: TextStyle(
-              fontSize: 48,
+              fontSize: _isMobile ? 32 : 48,
               fontWeight: FontWeight.bold,
               color: Colors.white,
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 80),
-          SingleChildScrollView(
+          SizedBox(height: _isMobile ? 40 : 80),
+          _isMobile ? Column(
+            children: [
+              _buildTestimonialCard(
+                name: 'Sarah Johnson',
+                role: 'Fashion Store Owner',
+                content: 'PopStore transformed my business! I went from zero to 10K monthly revenue in just 2 months. The platform is incredibly easy to use.',
+                avatar: 'SJ',
+                rating: 5,
+              ),
+              const SizedBox(height: 20),
+              _buildTestimonialCard(
+                name: 'Mike Chen',
+                role: 'Tech Gadgets Seller',
+                content: 'The templates are stunning and the analytics help me make better decisions. Customer support is always there when I need them.',
+                avatar: 'MC',
+                rating: 5,
+              ),
+              const SizedBox(height: 20),
+              _buildTestimonialCard(
+                name: 'Emma Davis',
+                role: 'Handmade Crafts',
+                content: 'I love how professional my store looks. PopStore made it so easy to showcase my handmade items and reach more customers.',
+                avatar: 'ED',
+                rating: 5,
+              ),
+            ],
+          ) : SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -848,8 +1065,8 @@ class _LandingScreenState extends State<LandingScreen>
     required int rating,
   }) {
     return Container(
-      width: 350,
-      padding: const EdgeInsets.all(32),
+      width: _isMobile ? MediaQuery.of(context).size.width * 0.9 : 350,
+      padding: EdgeInsets.all(_isMobile ? 20 : 32),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.05),
         borderRadius: BorderRadius.circular(20),
@@ -874,7 +1091,7 @@ class _LandingScreenState extends State<LandingScreen>
             '"$content"',
             style: TextStyle(
               color: Colors.white.withOpacity(0.9),
-              fontSize: 16,
+              fontSize: _isMobile ? 14 : 16,
               height: 1.6,
               fontStyle: FontStyle.italic,
             ),
@@ -885,8 +1102,8 @@ class _LandingScreenState extends State<LandingScreen>
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                width: 50,
-                height: 50,
+                width: _isMobile ? 40 : 50,
+                height: _isMobile ? 40 : 50,
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
@@ -896,9 +1113,9 @@ class _LandingScreenState extends State<LandingScreen>
                 child: Center(
                   child: Text(
                     avatar,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: Colors.white,
-                      fontSize: 18,
+                      fontSize: _isMobile ? 16 : 18,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -910,9 +1127,9 @@ class _LandingScreenState extends State<LandingScreen>
                 children: [
                   Text(
                     name,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: Colors.white,
-                      fontSize: 18,
+                      fontSize: _isMobile ? 16 : 18,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -920,7 +1137,7 @@ class _LandingScreenState extends State<LandingScreen>
                     role,
                     style: TextStyle(
                       color: Colors.white.withOpacity(0.7),
-                      fontSize: 14,
+                      fontSize: _isMobile ? 12 : 14,
                     ),
                   ),
                 ],
@@ -934,32 +1151,31 @@ class _LandingScreenState extends State<LandingScreen>
 
   Widget _buildPricingSection() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 80),
-      child: Column(
-        children: [
-          const Text(
-            'Simple, Transparent Pricing',
-            style: TextStyle(
-              fontSize: 48,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
+      key: _pricingKey,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: _isMobile ? 16 : 24, vertical: _isMobile ? 40 : 80),
+        child: Column(
+          children: [
+            Text(
+              'Simple, Transparent Pricing',
+              style: TextStyle(
+                fontSize: _isMobile ? 32 : 48,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Choose the perfect plan for your business needs',
-            style: TextStyle(
-              fontSize: 20,
-              color: Colors.white.withOpacity(0.7),
+            const SizedBox(height: 16),
+            Text(
+              'Choose the perfect plan for your business needs',
+              style: TextStyle(
+                fontSize: _isMobile ? 16 : 20,
+                color: Colors.white.withOpacity(0.7),
+              ),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 80),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+            SizedBox(height: _isMobile ? 40 : 80),
+            _isMobile ? Column(
               children: [
                 _buildPricingCard(
                   title: 'Starter',
@@ -975,7 +1191,7 @@ class _LandingScreenState extends State<LandingScreen>
                   gradient: const [Color(0xFF6B7280), Color(0xFF9CA3AF)],
                   isPopular: false,
                 ),
-                const SizedBox(width: 40),
+                const SizedBox(height: 20),
                 _buildPricingCard(
                   title: 'Professional',
                   price: '\$79',
@@ -991,7 +1207,7 @@ class _LandingScreenState extends State<LandingScreen>
                   gradient: const [Color(0xFF6366F1), Color(0xFF8B5CF6)],
                   isPopular: true,
                 ),
-                const SizedBox(width: 40),
+                const SizedBox(height: 20),
                 _buildPricingCard(
                   title: 'Enterprise',
                   price: '\$199',
@@ -1008,9 +1224,62 @@ class _LandingScreenState extends State<LandingScreen>
                   isPopular: false,
                 ),
               ],
+            ) : SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _buildPricingCard(
+                    title: 'Starter',
+                    price: '\$29',
+                    period: '/month',
+                    features: [
+                      'Up to 100 products',
+                      'Basic templates',
+                      'Email support',
+                      'Basic analytics',
+                      'Mobile responsive',
+                    ],
+                    gradient: const [Color(0xFF6B7280), Color(0xFF9CA3AF)],
+                    isPopular: false,
+                  ),
+                  const SizedBox(width: 40),
+                  _buildPricingCard(
+                    title: 'Professional',
+                    price: '\$79',
+                    period: '/month',
+                    features: [
+                      'Unlimited products',
+                      'Premium templates',
+                      'Priority support',
+                      'Advanced analytics',
+                      'Custom domain',
+                      'Payment integration',
+                    ],
+                    gradient: const [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                    isPopular: true,
+                  ),
+                  const SizedBox(width: 40),
+                  _buildPricingCard(
+                    title: 'Enterprise',
+                    price: '\$199',
+                    period: '/month',
+                    features: [
+                      'Everything in Professional',
+                      'White-label solution',
+                      'API access',
+                      'Dedicated manager',
+                      'Custom integrations',
+                      'Advanced security',
+                    ],
+                    gradient: const [Color(0xFF10B981), Color(0xFF06B6D4)],
+                    isPopular: false,
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -1024,8 +1293,8 @@ class _LandingScreenState extends State<LandingScreen>
     required bool isPopular,
   }) {
     return Container(
-      width: 350,
-      padding: const EdgeInsets.all(32),
+      width: _isMobile ? MediaQuery.of(context).size.width * 0.9 : 350,
+      padding: EdgeInsets.all(_isMobile ? 20 : 32),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: gradient.map((color) => color.withOpacity(0.1)).toList(),
@@ -1063,9 +1332,9 @@ class _LandingScreenState extends State<LandingScreen>
           const SizedBox(height: 24),
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               color: Colors.white,
-              fontSize: 28,
+              fontSize: _isMobile ? 24 : 28,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -1077,9 +1346,9 @@ class _LandingScreenState extends State<LandingScreen>
             children: [
               Text(
                 price,
-                style: const TextStyle(
+                style: TextStyle(
                   color: Colors.white,
-                  fontSize: 48,
+                  fontSize: _isMobile ? 40 : 48,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -1087,7 +1356,7 @@ class _LandingScreenState extends State<LandingScreen>
                 period,
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.7),
-                  fontSize: 18,
+                  fontSize: _isMobile ? 16 : 18,
                 ),
               ),
             ],
@@ -1100,7 +1369,7 @@ class _LandingScreenState extends State<LandingScreen>
                 Icon(
                   Icons.check_circle,
                   color: gradient[0],
-                  size: 20,
+                  size: _isMobile ? 18 : 20,
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -1108,7 +1377,7 @@ class _LandingScreenState extends State<LandingScreen>
                     feature,
                     style: TextStyle(
                       color: Colors.white.withOpacity(0.9),
-                      fontSize: 16,
+                      fontSize: _isMobile ? 14 : 16,
                     ),
                   ),
                 ),
@@ -1130,16 +1399,16 @@ class _LandingScreenState extends State<LandingScreen>
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.transparent,
                 shadowColor: Colors.transparent,
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                padding: EdgeInsets.symmetric(vertical: _isMobile ? 14 : 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
               child: Text(
                 'Get Started',
-                style: const TextStyle(
+                style: TextStyle(
                   color: Colors.white,
-                  fontSize: 16,
+                  fontSize: _isMobile ? 14 : 16,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -1152,7 +1421,7 @@ class _LandingScreenState extends State<LandingScreen>
 
   Widget _buildCTASection() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 80),
+      padding: EdgeInsets.symmetric(horizontal: _isMobile ? 16 : 24, vertical: _isMobile ? 40 : 80),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
@@ -1165,7 +1434,7 @@ class _LandingScreenState extends State<LandingScreen>
         ),
       ),
       child: Container(
-        padding: const EdgeInsets.all(64),
+        padding: EdgeInsets.all(_isMobile ? 32 : 64),
         decoration: BoxDecoration(
           color: Colors.white.withOpacity(0.05),
           borderRadius: BorderRadius.circular(24),
@@ -1175,10 +1444,10 @@ class _LandingScreenState extends State<LandingScreen>
         ),
         child: Column(
           children: [
-            const Text(
+            Text(
               'Ready to Start Your Success Story?',
               style: TextStyle(
-                fontSize: 48,
+                fontSize: _isMobile ? 32 : 48,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
@@ -1188,13 +1457,71 @@ class _LandingScreenState extends State<LandingScreen>
             Text(
               'Join thousands of successful sellers who have transformed their businesses with PopStore',
               style: TextStyle(
-                fontSize: 20,
+                fontSize: _isMobile ? 16 : 20,
                 color: Colors.white.withOpacity(0.7),
               ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 40),
-            SingleChildScrollView(
+            _isMobile ? Column(
+              children: [
+                Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF6366F1).withOpacity(0.4),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.rocket_launch, size: 24),
+                    label: const Text(
+                      'Create Your Store Now',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    onPressed: () {
+                      HapticFeedback.lightImpact();
+                      Navigator.pushNamed(context, '/signup');
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 32,
+                        vertical: 20,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/login');
+                  },
+                  child: const Text(
+                    'Already have an account? Sign In',
+                    style: TextStyle(
+                      color: Color(0xFF6366F1),
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ) : SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -1264,7 +1591,7 @@ class _LandingScreenState extends State<LandingScreen>
 
   Widget _buildFooter() {
     return Container(
-      padding: const EdgeInsets.all(48),
+      padding: EdgeInsets.all(_isMobile ? 24 : 48),
       decoration: BoxDecoration(
         color: Colors.black.withOpacity(0.2),
         border: Border(
@@ -1275,7 +1602,14 @@ class _LandingScreenState extends State<LandingScreen>
       ),
       child: Column(
         children: [
-          SingleChildScrollView(
+          _isMobile ? Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildFooterBrand(),
+              const SizedBox(height: 32),
+              _buildFooterLinks(),
+            ],
+          ) : SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1284,128 +1618,40 @@ class _LandingScreenState extends State<LandingScreen>
                 Flexible(
                   flex: 1,
                   fit: FlexFit.loose,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
-                              ),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Icon(
-                              Icons.storefront,
-                              color: Colors.white,
-                              size: 24,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          const Text(
-                            'PopStore',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'The #1 platform for creating stunning ecommerce websites instantly. No coding required.',
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.7),
-                          fontSize: 16,
-                          height: 1.5,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      Row(
-                        children: [
-                          _buildSocialIcon(Icons.facebook),
-                          const SizedBox(width: 16),
-                          _buildSocialIcon(Icons.camera_alt), // Instagram
-                          const SizedBox(width: 16),
-                          _buildSocialIcon(Icons.business), // LinkedIn
-                          const SizedBox(width: 16),
-                          _buildSocialIcon(Icons.chat), // Twitter
-                        ],
-                      ),
-                    ],
-                  ),
+                  child: _buildFooterBrand(),
                 ),
                 const SizedBox(width: 80),
                 Flexible(
                   flex: 1,
                   fit: FlexFit.loose,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Product',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      _buildFooterLink('Templates'),
-                      _buildFooterLink('Features'),
-                      _buildFooterLink('Pricing'),
-                      _buildFooterLink('Integrations'),
-                    ],
-                  ),
+                  child: _buildFooterSection('Product', [
+                    'Templates',
+                    'Features',
+                    'Pricing',
+                    'Integrations',
+                  ]),
                 ),
                 const SizedBox(width: 40),
                 Flexible(
                   flex: 1,
                   fit: FlexFit.loose,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Support',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      _buildFooterLink('Help Center'),
-                      _buildFooterLink('Contact Us'),
-                      _buildFooterLink('Status'),
-                      _buildFooterLink('API Docs'),
-                    ],
-                  ),
+                  child: _buildFooterSection('Support', [
+                    'Help Center',
+                    'Contact Us',
+                    'Status',
+                    'API Docs',
+                  ]),
                 ),
                 const SizedBox(width: 40),
                 Flexible(
                   flex: 1,
                   fit: FlexFit.loose,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Company',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      _buildFooterLink('About Us'),
-                      _buildFooterLink('Careers'),
-                      _buildFooterLink('Blog'),
-                      _buildFooterLink('Press'),
-                    ],
-                  ),
+                  child: _buildFooterSection('Company', [
+                    'About Us',
+                    'Careers',
+                    'Blog',
+                    'Press',
+                  ]),
                 ),
               ],
             ),
@@ -1413,7 +1659,29 @@ class _LandingScreenState extends State<LandingScreen>
           const SizedBox(height: 48),
           Divider(color: Colors.white.withOpacity(0.1)),
           const SizedBox(height: 24),
-          SingleChildScrollView(
+          _isMobile ? Column(
+            children: [
+              Text(
+                '© 2025 PopStore. All rights reserved.',
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.6),
+                  fontSize: 14,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 24,
+                runSpacing: 8,
+                children: [
+                  _buildFooterLink('Privacy Policy'),
+                  _buildFooterLink('Terms of Service'),
+                  _buildFooterLink('Cookie Policy'),
+                ],
+              ),
+            ],
+          ) : SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1443,6 +1711,104 @@ class _LandingScreenState extends State<LandingScreen>
     );
   }
 
+  Widget _buildFooterBrand() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                ),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.storefront,
+                color: Colors.white,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              'PopStore',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: _isMobile ? 20 : 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Text(
+          'The #1 platform for creating stunning ecommerce websites instantly. No coding required.',
+          style: TextStyle(
+            color: Colors.white.withOpacity(0.7),
+            fontSize: _isMobile ? 14 : 16,
+            height: 1.5,
+          ),
+        ),
+        const SizedBox(height: 24),
+        Row(
+          children: [
+            _buildSocialIcon(Icons.facebook),
+            const SizedBox(width: 16),
+            _buildSocialIcon(Icons.camera_alt), // Instagram
+            const SizedBox(width: 16),
+            _buildSocialIcon(Icons.business), // LinkedIn
+            const SizedBox(width: 16),
+            _buildSocialIcon(Icons.chat), // Twitter
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFooterSection(String title, List<String> links) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: _isMobile ? 16 : 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 16),
+        ...links.map((link) => _buildFooterLink(link)),
+      ],
+    );
+  }
+
+  Widget _buildFooterLinks() {
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: _buildFooterSection('Product', [
+                'Features',
+                'Pricing',
+                'Integrations',
+              ]),
+            ),
+            const SizedBox(width: 32),
+            Expanded(
+              child: _buildFooterSection('Company', [
+                'About Us',
+              ]),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
   Widget _buildSocialIcon(IconData icon) {
     return Container(
       padding: const EdgeInsets.all(12),
@@ -1459,13 +1825,25 @@ class _LandingScreenState extends State<LandingScreen>
   }
 
   Widget _buildFooterLink(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Text(
-        text,
-        style: TextStyle(
-          color: Colors.white.withOpacity(0.7),
-          fontSize: 16,
+    return GestureDetector(
+      onTap: () {
+        if (text == 'Features') {
+          _scrollToSection(_featuresKey);
+        } else if (text == 'Pricing') {
+          _scrollToSection(_pricingKey);
+        } else if (text == 'About Us') {
+          Navigator.pushNamed(context, '/about');
+        }
+        // For others, do nothing or add more cases
+      },
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: Text(
+          text,
+          style: TextStyle(
+            color: Colors.white.withOpacity(0.7),
+            fontSize: 16,
+          ),
         ),
       ),
     );

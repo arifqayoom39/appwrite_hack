@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../features/auth/screens/login_screen.dart';
 import '../features/auth/screens/signup_screen.dart';
 import '../features/auth/screens/landing_screen.dart';
+import '../features/auth/screens/about_us_screen.dart';
 import '../features/seller/screens/dashboard_screen.dart';
 import '../features/seller/screens/create_shop_screen.dart';
 import '../features/seller/screens/product_form_screen.dart';
@@ -23,6 +24,8 @@ class AppRouter {
         return MaterialPageRoute(builder: (_) => const LoginScreen());
       case '/signup':
         return MaterialPageRoute(builder: (_) => const SignupScreen());
+      case '/about':
+        return MaterialPageRoute(builder: (_) => const AboutUsScreen());
       case '/dashboard':
         return MaterialPageRoute(builder: (_) => const DashboardScreen());
       case '/create-shop':
