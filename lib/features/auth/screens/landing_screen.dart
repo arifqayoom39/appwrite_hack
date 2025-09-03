@@ -23,7 +23,7 @@ class _LandingScreenState extends State<LandingScreen>
   // Global keys for sections
   final GlobalKey _featuresKey = GlobalKey();
   final GlobalKey _pricingKey = GlobalKey();
-  final GlobalKey _aboutUsKey = GlobalKey();
+  final GlobalKey aboutUsKey = GlobalKey();
 
   @override
   void initState() {
