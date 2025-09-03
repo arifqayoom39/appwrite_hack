@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/foundation.dart';
 import '../widgets/landing_store_preview.dart';
 
 class LandingScreen extends StatefulWidget {
@@ -15,12 +14,12 @@ class _LandingScreenState extends State<LandingScreen>
   // Appwrite theme colors
   static const Color appwritePink = Color(0xFFFD366E);
   static const Color appwritePurple = Color(0xFF8B5CF6);
-  AnimationController? _heroAnimationController;
-  Animation<double>? _heroFadeAnimation;
-  AnimationController? _featuresAnimationController;
-  Animation<double>? _featuresSlideAnimation;
-  AnimationController? _statsAnimationController;
-  Animation<double>? _statsScaleAnimation;
+  late AnimationController _heroAnimationController;
+  late Animation<double> _heroFadeAnimation;
+  late AnimationController _featuresAnimationController;
+  late Animation<double> _featuresSlideAnimation;
+  late AnimationController _statsAnimationController;
+  late Animation<double> _statsScaleAnimation;
 
   final ScrollController _scrollController = ScrollController();
   bool _isScrolled = false;
@@ -33,63 +32,45 @@ class _LandingScreenState extends State<LandingScreen>
   void initState() {
     super.initState();
 
-    // Defer animation initialization to improve initial load performance
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _initializeAnimations();
+    _heroAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 1200),
+      vsync: this,
+    );
+    _featuresAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 1000),
+      vsync: this,
+    );
+    _statsAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+
+    _heroFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _heroAnimationController, curve: Curves.easeInOut),
+    );
+    _featuresSlideAnimation = Tween<double>(begin: 50.0, end: 0.0).animate(
+      CurvedAnimation(parent: _featuresAnimationController, curve: Curves.elasticOut),
+    );
+    _statsScaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+      CurvedAnimation(parent: _statsAnimationController, curve: Curves.elasticOut),
+    );
+
+    _heroAnimationController.forward();
+    Future.delayed(const Duration(milliseconds: 300), () {
+      _featuresAnimationController.forward();
+    });
+    Future.delayed(const Duration(milliseconds: 600), () {
+      _statsAnimationController.forward();
     });
 
     _scrollController.addListener(_onScroll);
   }
 
-  void _initializeAnimations() {
-    // Skip animations in debug mode for better performance during development
-    if (kReleaseMode) {
-      _heroAnimationController = AnimationController(
-        duration: const Duration(milliseconds: 1200),
-        vsync: this,
-      );
-      _featuresAnimationController = AnimationController(
-        duration: const Duration(milliseconds: 1000),
-        vsync: this,
-      );
-      _statsAnimationController = AnimationController(
-        duration: const Duration(milliseconds: 800),
-        vsync: this,
-      );
-
-      _heroFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-        CurvedAnimation(parent: _heroAnimationController!, curve: Curves.easeInOut),
-      );
-      _featuresSlideAnimation = Tween<double>(begin: 50.0, end: 0.0).animate(
-        CurvedAnimation(parent: _featuresAnimationController!, curve: Curves.elasticOut),
-      );
-      _statsScaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
-        CurvedAnimation(parent: _statsAnimationController!, curve: Curves.elasticOut),
-      );
-
-      // Start animations with staggered delays
-      Future.delayed(const Duration(milliseconds: 200), () {
-        if (mounted) _heroAnimationController?.forward();
-      });
-      Future.delayed(const Duration(milliseconds: 500), () {
-        if (mounted) _featuresAnimationController?.forward();
-      });
-      Future.delayed(const Duration(milliseconds: 800), () {
-        if (mounted) _statsAnimationController?.forward();
-      });
-    } else {
-      // In debug mode, use static animations for better performance
-      _heroFadeAnimation = AlwaysStoppedAnimation(1.0);
-      _featuresSlideAnimation = AlwaysStoppedAnimation(0.0);
-      _statsScaleAnimation = AlwaysStoppedAnimation(1.0);
-    }
-  }
-
   @override
   void dispose() {
-    _heroAnimationController?.dispose();
-    _featuresAnimationController?.dispose();
-    _statsAnimationController?.dispose();
+    _heroAnimationController.dispose();
+    _featuresAnimationController.dispose();
+    _statsAnimationController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -319,7 +300,7 @@ class _LandingScreenState extends State<LandingScreen>
       height: _isMobile ? null : MediaQuery.of(context).size.height * 0.8,
       padding: EdgeInsets.symmetric(horizontal: _isMobile ? 16 : 24),
       child: FadeTransition(
-        opacity: _heroFadeAnimation ?? AlwaysStoppedAnimation(1.0),
+        opacity: _heroFadeAnimation,
         child: _isMobile ? Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -650,10 +631,10 @@ class _LandingScreenState extends State<LandingScreen>
             ),
             SizedBox(height: _isMobile ? 40 : 80),
             AnimatedBuilder(
-              animation: _featuresSlideAnimation ?? AlwaysStoppedAnimation(0.0),
+              animation: _featuresSlideAnimation,
               builder: (context, child) {
                 return Transform.translate(
-                  offset: Offset(0, _featuresSlideAnimation?.value ?? 0.0),
+                  offset: Offset(0, _featuresSlideAnimation.value),
                   child: Wrap(
                     spacing: _isMobile ? 16 : 40,
                     runSpacing: _isMobile ? 16 : 40,
@@ -935,10 +916,10 @@ class _LandingScreenState extends State<LandingScreen>
     return Container(
       padding: EdgeInsets.symmetric(horizontal: _isMobile ? 16 : 24, vertical: _isMobile ? 40 : 80),
       child: AnimatedBuilder(
-        animation: _statsScaleAnimation ?? AlwaysStoppedAnimation(1.0),
+        animation: _statsScaleAnimation,
         builder: (context, child) {
           return Transform.scale(
-            scale: _statsScaleAnimation?.value ?? 1.0,
+            scale: _statsScaleAnimation.value,
             child: Column(
               children: [
                 Text(
