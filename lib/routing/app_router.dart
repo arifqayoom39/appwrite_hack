@@ -3,7 +3,7 @@ import '../features/buyer/screens/storefront_screen.dart';
 import 'package:flutter/material.dart';
 import '../features/auth/screens/login_screen.dart';
 import '../features/auth/screens/signup_screen.dart';
-import '../features/auth/screens/landing_screen.dart';
+import '../features/auth/screens/landing_screen_loader.dart';
 import '../features/auth/screens/about_us_screen.dart';
 import '../features/seller/screens/dashboard_screen.dart';
 import '../features/seller/screens/create_shop_screen.dart';
@@ -14,7 +14,7 @@ class AppRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
       case '/':
-        return MaterialPageRoute(builder: (_) => const LandingScreen());
+        return MaterialPageRoute(builder: (_) => const LandingScreenLoader());
       case '/shop-preview':
         return MaterialPageRoute(builder: (_) => const ShopPreviewScreen());
       case '/shop-page':
