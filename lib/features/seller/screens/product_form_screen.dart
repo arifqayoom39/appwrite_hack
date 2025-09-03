@@ -148,12 +148,12 @@ class _ProductFormScreenState extends State<ProductFormScreen>
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                colors: [Color(0xFFFD366E), Color(0xFF7C3AED)],
               ),
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF6366F1).withOpacity(0.3),
+                  color: const Color(0xFFFD366E).withOpacity(0.3),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),
@@ -227,14 +227,14 @@ class _ProductFormScreenState extends State<ProductFormScreen>
                 borderRadius: BorderRadius.circular(2),
                 gradient: isActive
                     ? const LinearGradient(
-                        colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                        colors: [Color(0xFFFD366E), Color(0xFF7C3AED)],
                       )
                     : null,
                 color: isActive ? null : Colors.white.withOpacity(0.2),
                 boxShadow: isCurrent
                     ? [
                         BoxShadow(
-                          color: const Color(0xFF6366F1).withOpacity(0.4),
+                          color: const Color(0xFFFD366E).withOpacity(0.4),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -288,12 +288,12 @@ class _ProductFormScreenState extends State<ProductFormScreen>
             child: Container(
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                  colors: [Color(0xFFFD366E), Color(0xFF7C3AED)],
                 ),
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF6366F1).withOpacity(0.4),
+                    color: const Color(0xFFFD366E).withOpacity(0.4),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -372,7 +372,7 @@ class _ProductFormScreenState extends State<ProductFormScreen>
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
-                            colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                            colors: [Color(0xFFFD366E), Color(0xFF7C3AED)],
                           ),
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -1088,7 +1088,7 @@ class _ProductFormScreenState extends State<ProductFormScreen>
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
-                            colors: [Color(0xFF8B5CF6), Color(0xFFA855F7)],
+                            colors: [Color(0xFF7C3AED), Color(0xFFA855F7)],
                           ),
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -1140,7 +1140,7 @@ class _ProductFormScreenState extends State<ProductFormScreen>
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: const BorderSide(color: Color(0xFF6366F1)),
+                              borderSide: const BorderSide(color: Color(0xFFFD366E)),
                             ),
                             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                           ),
@@ -1160,9 +1160,9 @@ class _ProductFormScreenState extends State<ProductFormScreen>
                             children: _tags.map((tag) => Container(
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF6366F1).withOpacity(0.2),
+                                color: const Color(0xFFFD366E).withOpacity(0.2),
                                 borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: const Color(0xFF6366F1).withOpacity(0.3)),
+                                border: Border.all(color: const Color(0xFFFD366E).withOpacity(0.3)),
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
@@ -1212,7 +1212,7 @@ class _ProductFormScreenState extends State<ProductFormScreen>
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
-                            colors: [Color(0xFF8B5CF6), Color(0xFFA855F7)],
+                            colors: [Color(0xFF7C3AED), Color(0xFFA855F7)],
                           ),
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -1264,7 +1264,7 @@ class _ProductFormScreenState extends State<ProductFormScreen>
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
                                 gradient: const LinearGradient(
-                                  colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                                  colors: [Color(0xFFFD366E), Color(0xFF7C3AED)],
                                 ),
                                 borderRadius: BorderRadius.circular(8),
                               ),
@@ -1458,7 +1458,7 @@ class _ProductFormScreenState extends State<ProductFormScreen>
         color: Colors.white.withOpacity(0.05),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: value ? const Color(0xFF6366F1) : Colors.white.withOpacity(0.1),
+          color: value ? const Color(0xFFFD366E) : Colors.white.withOpacity(0.1),
         ),
       ),
       child: Row(
@@ -1488,8 +1488,8 @@ class _ProductFormScreenState extends State<ProductFormScreen>
           Switch(
             value: value,
             onChanged: onChanged,
-            activeColor: const Color(0xFF6366F1),
-            activeTrackColor: const Color(0xFF6366F1).withOpacity(0.3),
+            activeColor: const Color(0xFFFD366E),
+            activeTrackColor: const Color(0xFFFD366E).withOpacity(0.3),
           ),
         ],
       ),
@@ -1526,7 +1526,7 @@ class _ProductFormScreenState extends State<ProductFormScreen>
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                  colors: [Color(0xFFFD366E), Color(0xFF7C3AED)],
                 ),
                 borderRadius: BorderRadius.circular(12),
               ),

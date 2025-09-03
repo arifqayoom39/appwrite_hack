@@ -69,8 +69,8 @@ class _CreateShopScreenState extends State<CreateShopScreen>
       brightness: Brightness.dark,
       primarySwatch: Colors.blue,
       colorScheme: const ColorScheme.dark(
-        primary: Color(0xFF6366F1),
-        secondary: Color(0xFF8B5CF6),
+        primary: Color(0xFFFD366E),
+        secondary: Color(0xFF7C3AED),
         surface: Color(0xFF0F172A),
         background: Color(0xFF1E293B),
         tertiary: Color(0xFF06B6D4),
@@ -163,7 +163,7 @@ class _CreateShopScreenState extends State<CreateShopScreen>
         secondary: Color(0xFFEC4899),
         surface: Color(0xFFFDF2F8),
         background: Color(0xFFFEF7FF),
-        tertiary: Color(0xFF8B5CF6),
+        tertiary: Color(0xFF7C3AED),
       ),
       scaffoldBackgroundColor: const Color(0xFFFDF2F8),
       cardTheme: CardTheme(
@@ -178,7 +178,7 @@ class _CreateShopScreenState extends State<CreateShopScreen>
       primarySwatch: Colors.indigo,
       colorScheme: const ColorScheme.dark(
         primary: Color(0xFF4F46E5),
-        secondary: Color(0xFF6366F1),
+        secondary: Color(0xFFFD366E),
         surface: Color(0xFF111827),
         background: Color(0xFF374151),
         tertiary: Color(0xFF10B981),
@@ -300,12 +300,12 @@ class _CreateShopScreenState extends State<CreateShopScreen>
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                colors: [Color(0xFFFD366E), Color(0xFF7C3AED)],
               ),
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF6366F1).withOpacity(0.3),
+                  color: const Color(0xFFFD366E).withOpacity(0.3),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),
@@ -379,14 +379,14 @@ class _CreateShopScreenState extends State<CreateShopScreen>
                 borderRadius: BorderRadius.circular(2),
                 gradient: isActive
                     ? const LinearGradient(
-                        colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                        colors: [Color(0xFFFD366E), Color(0xFF7C3AED)],
                       )
                     : null,
                 color: isActive ? null : Colors.white.withOpacity(0.2),
                 boxShadow: isCurrent
                     ? [
                         BoxShadow(
-                          color: const Color(0xFF6366F1).withOpacity(0.4),
+                          color: const Color(0xFFFD366E).withOpacity(0.4),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -440,12 +440,12 @@ class _CreateShopScreenState extends State<CreateShopScreen>
             child: Container(
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                  colors: [Color(0xFFFD366E), Color(0xFF7C3AED)],
                 ),
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF6366F1).withOpacity(0.4),
+                    color: const Color(0xFFFD366E).withOpacity(0.4),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -524,7 +524,7 @@ class _CreateShopScreenState extends State<CreateShopScreen>
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
-                            colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                            colors: [Color(0xFFFD366E), Color(0xFF7C3AED)],
                           ),
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -665,7 +665,7 @@ class _CreateShopScreenState extends State<CreateShopScreen>
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
-                            colors: [Color(0xFFEC4899), Color(0xFF8B5CF6)],
+                            colors: [Color(0xFFEC4899), Color(0xFF7C3AED)],
                           ),
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -710,13 +710,13 @@ class _CreateShopScreenState extends State<CreateShopScreen>
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
-                              color: isSelected ? const Color(0xFF6366F1) : Colors.white.withOpacity(0.1),
+                              color: isSelected ? const Color(0xFFFD366E) : Colors.white.withOpacity(0.1),
                               width: isSelected ? 3 : 1,
                             ),
                             boxShadow: isSelected
                                 ? [
                                     BoxShadow(
-                                      color: const Color(0xFF6366F1).withOpacity(0.3),
+                                      color: const Color(0xFFFD366E).withOpacity(0.3),
                                       blurRadius: 12,
                                       offset: const Offset(0, 4),
                                     ),
@@ -759,7 +759,7 @@ class _CreateShopScreenState extends State<CreateShopScreen>
                                         ),
                                         child: const Icon(
                                           Icons.check,
-                                          color: Color(0xFF6366F1),
+                                          color: Color(0xFFFD366E),
                                           size: 16,
                                         ),
                                       ),
@@ -907,7 +907,7 @@ class _CreateShopScreenState extends State<CreateShopScreen>
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
-                          colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                          colors: [Color(0xFFFD366E), Color(0xFF7C3AED)],
                         ),
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -1249,7 +1249,7 @@ class _CreateShopScreenState extends State<CreateShopScreen>
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                  colors: [Color(0xFFFD366E), Color(0xFF7C3AED)],
                 ),
                 borderRadius: BorderRadius.circular(12),
               ),

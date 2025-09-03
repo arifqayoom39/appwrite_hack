@@ -91,8 +91,8 @@ class _ShopPreviewScreenState extends State<ShopPreviewScreen>
       primarySwatch: Colors.blue,
       colorScheme: const ColorScheme.dark(
         tertiary: Color(0xFF06B6D4),
-        primary: Color(0xFF6366F1),
-        secondary: Color(0xFF8B5CF6),
+        primary: Color(0xFFFD366E),
+        secondary: Color(0xFF7C3AED),
       ),
       scaffoldBackgroundColor: const Color(0xFF0F172A),
       cardTheme: CardTheme(
@@ -155,7 +155,7 @@ class _ShopPreviewScreenState extends State<ShopPreviewScreen>
       brightness: Brightness.light,
       primarySwatch: Colors.pink,
       colorScheme: const ColorScheme.light(
-        tertiary: Color(0xFF8B5CF6),
+        tertiary: Color(0xFF7C3AED),
         primary: Color(0xFFDB2777),
         secondary: Color(0xFFEC4899),
       ),
@@ -170,7 +170,7 @@ class _ShopPreviewScreenState extends State<ShopPreviewScreen>
       colorScheme: const ColorScheme.dark(
         tertiary: Color(0xFF10B981),
         primary: Color(0xFF4F46E5),
-        secondary: Color(0xFF6366F1),
+        secondary: Color(0xFFFD366E),
       ),
       scaffoldBackgroundColor: const Color(0xFF111827),
       cardTheme: CardTheme(
@@ -375,7 +375,7 @@ class _ShopPreviewScreenState extends State<ShopPreviewScreen>
         return const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF8B5CF6), Color(0xFFA855F7), Color(0xFFC084FC)],
+          colors: [Color(0xFF7C3AED), Color(0xFFA855F7), Color(0xFFC084FC)],
         );
       case 'Aurora':
         return const LinearGradient(
@@ -387,7 +387,7 @@ class _ShopPreviewScreenState extends State<ShopPreviewScreen>
         return const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF6366F1), Color(0xFF8B5CF6), Color(0xFF10B981)],
+          colors: [Color(0xFFFD366E), Color(0xFF7C3AED), Color(0xFF10B981)],
         );
       case 'Golden Luxury':
         return const LinearGradient(

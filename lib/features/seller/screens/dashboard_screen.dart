@@ -50,7 +50,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       'subtitle': '5-star review on Smart Watch',
       'time': '1 hour ago',
       'icon': Icons.star,
-      'color': const Color(0xFF6366F1),
+      'color': const Color(0xFFFD366E),
     },
     {
       'type': 'order',
@@ -67,7 +67,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       'title': 'Create Shop',
       'subtitle': 'Set up your online store',
       'icon': Icons.store,
-      'gradient': const [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+      'gradient': const [Color(0xFFFD366E), Color(0xFF7C3AED)],
       'route': '/create-shop',
     },
     {
@@ -173,12 +173,12 @@ class _DashboardScreenState extends State<DashboardScreen>
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
           gradient: const LinearGradient(
-            colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+            colors: [Color(0xFFFD366E), Color(0xFF7C3AED)],
           ),
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF6366F1).withOpacity(0.3),
+              color: const Color(0xFFFD366E).withOpacity(0.3),
               blurRadius: 20,
               offset: const Offset(0, 8),
             ),
@@ -281,7 +281,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                 change: '+8.2%',
                 changeColor: const Color(0xFF10B981),
                 icon: Icons.shopping_cart,
-                gradient: const [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                gradient: const [Color(0xFFFD366E), Color(0xFF7C3AED)],
               ),
             ),
           ],
@@ -520,7 +520,7 @@ class _DashboardScreenState extends State<DashboardScreen>
               child: const Text(
                 'View All',
                 style: TextStyle(
-                  color: Color(0xFF6366F1),
+                  color: Color(0xFFFD366E),
                   fontWeight: FontWeight.w500,
                 ),
               ),

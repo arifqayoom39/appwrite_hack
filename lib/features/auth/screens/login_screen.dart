@@ -110,12 +110,12 @@ class _LoginScreenState extends State<LoginScreen>
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                colors: [Color(0xFFFD366E), Color(0xFF7C3AED)],
               ),
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF6366F1).withOpacity(0.3),
+                  color: const Color(0xFFFD366E).withOpacity(0.3),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
@@ -246,7 +246,7 @@ class _LoginScreenState extends State<LoginScreen>
                     _rememberMe = value ?? false;
                   });
                 },
-                activeColor: const Color(0xFF6366F1),
+                activeColor: const Color(0xFFFD366E),
                 checkColor: Colors.white,
               ),
               Text(
@@ -265,7 +265,7 @@ class _LoginScreenState extends State<LoginScreen>
                 child: const Text(
                   'Forgot Password?',
                   style: TextStyle(
-                    color: Color(0xFF6366F1),
+                    color: Color(0xFFFD366E),
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
                   ),
@@ -281,12 +281,12 @@ class _LoginScreenState extends State<LoginScreen>
             height: 56,
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                colors: [Color(0xFFFD366E), Color(0xFF7C3AED)],
               ),
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF6366F1).withOpacity(0.4),
+                  color: const Color(0xFFFD366E).withOpacity(0.4),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),
@@ -402,7 +402,7 @@ class _LoginScreenState extends State<LoginScreen>
           child: const Text(
             'Sign Up',
             style: TextStyle(
-              color: Color(0xFF6366F1),
+              color: Color(0xFFFD366E),
               fontSize: 16,
               fontWeight: FontWeight.bold,
             ),

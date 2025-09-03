@@ -357,7 +357,7 @@ class _SignupScreenState extends State<SignupScreen>
                       TextSpan(
                         text: 'Terms of Service',
                         style: const TextStyle(
-                          color: Color(0xFF6366F1),
+                          color: Color(0xFFFD366E),
                           fontWeight: FontWeight.w500,
                         ),
                         // Add onTap for terms
@@ -366,7 +366,7 @@ class _SignupScreenState extends State<SignupScreen>
                       TextSpan(
                         text: 'Privacy Policy',
                         style: const TextStyle(
-                          color: Color(0xFF6366F1),
+                          color: Color(0xFFFD366E),
                           fontWeight: FontWeight.w500,
                         ),
                         // Add onTap for privacy

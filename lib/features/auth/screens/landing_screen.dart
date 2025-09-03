@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../widgets/landing_store_preview.dart';
 
 class LandingScreen extends StatefulWidget {
   const LandingScreen({Key? key}) : super(key: key);
@@ -10,6 +11,9 @@ class LandingScreen extends StatefulWidget {
 
 class _LandingScreenState extends State<LandingScreen>
     with TickerProviderStateMixin {
+  // Appwrite theme colors
+  static const Color appwritePink = Color(0xFFFD366E);
+  static const Color appwritePurple = Color(0xFF8B5CF6);
   late AnimationController _heroAnimationController;
   late Animation<double> _heroFadeAnimation;
   late AnimationController _featuresAnimationController;
@@ -23,7 +27,6 @@ class _LandingScreenState extends State<LandingScreen>
   // Global keys for sections
   final GlobalKey _featuresKey = GlobalKey();
   final GlobalKey _pricingKey = GlobalKey();
-  final GlobalKey aboutUsKey = GlobalKey();
 
   @override
   void initState() {
@@ -135,13 +138,13 @@ class _LandingScreenState extends State<LandingScreen>
           ? Colors.black.withOpacity(0.8)
           : Colors.transparent,
       elevation: _isScrolled ? 8 : 0,
-      title: Row(
+      title: _isMobile ? Row(
         children: [
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                colors: [appwritePink, appwritePurple],
               ),
               borderRadius: BorderRadius.circular(12),
             ),
@@ -156,8 +159,70 @@ class _LandingScreenState extends State<LandingScreen>
             'PopStore',
             style: TextStyle(
               color: Colors.white,
-              fontSize: _isMobile ? 20 : 24,
+              fontSize: 20,
               fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ) : Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [appwritePink, appwritePurple],
+              ),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.storefront,
+              color: Colors.white,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Text(
+            'PopStore',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(width: 32),
+          TextButton(
+            onPressed: () => _scrollToSection(_featuresKey),
+            child: const Text(
+              'Features',
+              style: TextStyle(
+                color: appwritePink,
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          TextButton(
+            onPressed: () => _scrollToSection(_pricingKey),
+            child: const Text(
+              'Pricing',
+              style: TextStyle(
+                color: appwritePink,
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          TextButton(
+            onPressed: () => Navigator.pushNamed(context, '/about'),
+            child: const Text(
+              'About Us',
+              style: TextStyle(
+                color: appwritePink,
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         ],
@@ -173,7 +238,7 @@ class _LandingScreenState extends State<LandingScreen>
           margin: const EdgeInsets.only(right: 8),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-              colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+              colors: [appwritePink, appwritePurple],
             ),
             borderRadius: BorderRadius.circular(8),
           ),
@@ -192,7 +257,7 @@ class _LandingScreenState extends State<LandingScreen>
           child: const Text(
             'Login',
             style: TextStyle(
-              color: Colors.white,
+              color: appwritePink,
               fontSize: 16,
               fontWeight: FontWeight.w500,
             ),
@@ -202,7 +267,7 @@ class _LandingScreenState extends State<LandingScreen>
         Container(
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-              colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+              colors: [appwritePink, appwritePurple],
             ),
             borderRadius: BorderRadius.circular(8),
           ),
@@ -279,16 +344,16 @@ class _LandingScreenState extends State<LandingScreen>
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           decoration: BoxDecoration(
-            color: const Color(0xFF10B981).withOpacity(0.2),
+            color: appwritePink.withOpacity(0.2),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: const Color(0xFF10B981).withOpacity(0.3),
+              color: appwritePink.withOpacity(0.3),
             ),
           ),
           child: const Text(
             '🚀 #1 Instant Ecommerce Platform',
             style: TextStyle(
-              color: Color(0xFF10B981),
+              color: Colors.white,
               fontSize: 14,
               fontWeight: FontWeight.w500,
             ),
@@ -326,7 +391,7 @@ class _LandingScreenState extends State<LandingScreen>
           width: double.infinity,
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-              colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+              colors: [appwritePink, appwritePurple],
             ),
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
@@ -337,13 +402,14 @@ class _LandingScreenState extends State<LandingScreen>
               ),
             ],
           ),
-          child: ElevatedButton.icon(
-            icon: const Icon(Icons.rocket_launch, size: 24),
+            child: ElevatedButton.icon(
+            icon: const Icon(Icons.rocket_launch, size: 24, color: Colors.white),
             label: const Text(
               'Start Creating Now',
               style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
               ),
             ),
             onPressed: () {
@@ -373,7 +439,7 @@ class _LandingScreenState extends State<LandingScreen>
           label: const Text(
             'Watch Demo',
             style: TextStyle(
-              color: Color(0xFF6366F1),
+              color: appwritePink,
               fontSize: 18,
               fontWeight: FontWeight.w500,
             ),
@@ -391,25 +457,26 @@ class _LandingScreenState extends State<LandingScreen>
           Container(
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                colors: [appwritePink, appwritePurple],
               ),
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF6366F1).withOpacity(0.4),
+                  color: appwritePink.withOpacity(0.4),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
               ],
             ),
             child: ElevatedButton.icon(
-              icon: const Icon(Icons.rocket_launch, size: 24),
+              icon: const Icon(Icons.rocket_launch, size: 24, color: Colors.white),
               label: const Text(
-                'Start Creating Now',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+              'Start Creating Now',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
               ),
               onPressed: () {
                 HapticFeedback.lightImpact();
@@ -438,7 +505,7 @@ class _LandingScreenState extends State<LandingScreen>
             label: const Text(
               'Watch Demo',
               style: TextStyle(
-                color: Color(0xFF6366F1),
+                color: appwritePink,
                 fontSize: 18,
                 fontWeight: FontWeight.w500,
               ),
@@ -458,7 +525,7 @@ class _LandingScreenState extends State<LandingScreen>
       children: [
         _buildTrustIndicator('4.9/5', Icons.star, const Color(0xFFF59E0B)),
         const SizedBox(height: 16),
-        _buildTrustIndicator('10K+ Stores', Icons.store, const Color(0xFF10B981)),
+        _buildTrustIndicator('10K+ Stores', Icons.store, appwritePink),
         const SizedBox(height: 16),
         _buildTrustIndicator('99.9% Uptime', Icons.verified, const Color(0xFF06B6D4)),
       ],
@@ -468,7 +535,7 @@ class _LandingScreenState extends State<LandingScreen>
         children: [
           _buildTrustIndicator('4.9/5', Icons.star, const Color(0xFFF59E0B)),
           const SizedBox(width: 24),
-          _buildTrustIndicator('10K+ Stores', Icons.store, const Color(0xFF10B981)),
+          _buildTrustIndicator('10K+ Stores', Icons.store, appwritePink),
           const SizedBox(width: 24),
           _buildTrustIndicator('99.9% Uptime', Icons.verified, const Color(0xFF06B6D4)),
         ],
@@ -485,7 +552,7 @@ class _LandingScreenState extends State<LandingScreen>
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF6366F1).withOpacity(0.3),
+            color: appwritePink.withOpacity(0.3),
             blurRadius: 40,
             offset: const Offset(0, 20),
           ),
@@ -507,48 +574,7 @@ class _LandingScreenState extends State<LandingScreen>
               color: Colors.white.withOpacity(0.2),
             ),
           ),
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(40),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        const Color(0xFF6366F1).withOpacity(0.2),
-                        const Color(0xFF8B5CF6).withOpacity(0.2),
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(100),
-                  ),
-                  child: const Icon(
-                    Icons.web,
-                    color: Colors.white,
-                    size: 80,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  'Your Store Preview',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: _isMobile ? 20 : 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'See how beautiful your store will look',
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.7),
-                    fontSize: _isMobile ? 14 : 16,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          ),
+          child: const LandingStorePreview(),
         ),
       ),
     );
@@ -621,12 +647,6 @@ class _LandingScreenState extends State<LandingScreen>
                         gradient: const [Color(0xFFF59E0B), Color(0xFFFBBF24)],
                       ),
                       _buildFeatureCard(
-                        icon: Icons.palette,
-                        title: 'Beautiful Templates',
-                        description: 'Choose from 100+ professionally designed templates',
-                        gradient: const [Color(0xFFEC4899), Color(0xFFF472B6)],
-                      ),
-                      _buildFeatureCard(
                         icon: Icons.smartphone,
                         title: 'Mobile Optimized',
                         description: 'Your store looks perfect on all devices and screen sizes',
@@ -642,7 +662,7 @@ class _LandingScreenState extends State<LandingScreen>
                         icon: Icons.payment,
                         title: 'Secure Payments',
                         description: 'Accept payments worldwide with integrated payment gateways',
-                        gradient: const [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                        gradient: const [appwritePink, appwritePurple],
                       ),
                       _buildFeatureCard(
                         icon: Icons.support_agent,
@@ -761,7 +781,7 @@ class _LandingScreenState extends State<LandingScreen>
                 title: 'Choose Template',
                 description: 'Select from our collection of beautiful, mobile-optimized templates',
                 icon: Icons.design_services,
-                gradient: const [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                gradient: const [appwritePink, appwritePurple],
               ),
               const SizedBox(height: 20),
               _buildStepConnector(),
@@ -794,7 +814,7 @@ class _LandingScreenState extends State<LandingScreen>
                   title: 'Choose Template',
                   description: 'Select from our collection of beautiful, mobile-optimized templates',
                   icon: Icons.design_services,
-                  gradient: const [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                  gradient: const [appwritePink, appwritePurple],
                 ),
                 _buildStepConnector(),
                 _buildStepCard(
@@ -914,7 +934,7 @@ class _LandingScreenState extends State<LandingScreen>
                 SizedBox(height: _isMobile ? 40 : 80),
                 _isMobile ? Column(
                   children: [
-                    _buildStatItem('10,000+', 'Stores Created', const Color(0xFF6366F1)),
+                    _buildStatItem('10,000+', 'Stores Created', appwritePink),
                     const SizedBox(height: 40),
                     _buildStatItem('500K+', 'Products Sold', const Color(0xFF10B981)),
                     const SizedBox(height: 40),
@@ -927,7 +947,7 @@ class _LandingScreenState extends State<LandingScreen>
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      _buildStatItem('10,000+', 'Stores Created', const Color(0xFF6366F1)),
+                      _buildStatItem('10,000+', 'Stores Created', appwritePink),
                       const SizedBox(width: 80),
                       _buildStatItem('500K+', 'Products Sold', const Color(0xFF10B981)),
                       const SizedBox(width: 80),
@@ -1106,7 +1126,7 @@ class _LandingScreenState extends State<LandingScreen>
                 height: _isMobile ? 40 : 50,
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                    colors: [appwritePink, appwritePurple],
                   ),
                   borderRadius: BorderRadius.circular(25),
                 ),
@@ -1183,7 +1203,7 @@ class _LandingScreenState extends State<LandingScreen>
                   period: '/month',
                   features: [
                     'Up to 100 products',
-                    'Basic templates',
+                    'Basic design',
                     'Email support',
                     'Basic analytics',
                     'Mobile responsive',
@@ -1198,13 +1218,13 @@ class _LandingScreenState extends State<LandingScreen>
                   period: '/month',
                   features: [
                     'Unlimited products',
-                    'Premium templates',
+                    'Premium design',
                     'Priority support',
                     'Advanced analytics',
                     'Custom domain',
                     'Payment integration',
                   ],
-                  gradient: const [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                  gradient: const [appwritePink, appwritePurple],
                   isPopular: true,
                 ),
                 const SizedBox(height: 20),
@@ -1256,7 +1276,7 @@ class _LandingScreenState extends State<LandingScreen>
                       'Custom domain',
                       'Payment integration',
                     ],
-                    gradient: const [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                    gradient: const [appwritePink, appwritePurple],
                     isPopular: true,
                   ),
                   const SizedBox(width: 40),
@@ -1405,7 +1425,7 @@ class _LandingScreenState extends State<LandingScreen>
                 ),
               ),
               child: Text(
-                'Get Started',
+                'Coming Soon',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: _isMobile ? 14 : 16,
@@ -1428,7 +1448,7 @@ class _LandingScreenState extends State<LandingScreen>
           end: Alignment.bottomCenter,
           colors: [
             Colors.transparent,
-            const Color(0xFF6366F1).withOpacity(0.1),
+            appwritePink.withOpacity(0.1),
             Colors.transparent,
           ],
         ),
@@ -1469,24 +1489,25 @@ class _LandingScreenState extends State<LandingScreen>
                   width: double.infinity,
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                      colors: [appwritePink, appwritePurple],
                     ),
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF6366F1).withOpacity(0.4),
+                        color: appwritePink.withOpacity(0.4),
                         blurRadius: 20,
                         offset: const Offset(0, 8),
                       ),
                     ],
                   ),
-                  child: ElevatedButton.icon(
-                    icon: const Icon(Icons.rocket_launch, size: 24),
+                    child: ElevatedButton.icon(
+                    icon: const Icon(Icons.rocket_launch, size: 24, color: Colors.white),
                     label: const Text(
                       'Create Your Store Now',
                       style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
                       ),
                     ),
                     onPressed: () {
@@ -1514,7 +1535,7 @@ class _LandingScreenState extends State<LandingScreen>
                   child: const Text(
                     'Already have an account? Sign In',
                     style: TextStyle(
-                      color: Color(0xFF6366F1),
+                      color: appwritePink,
                       fontSize: 18,
                       fontWeight: FontWeight.w500,
                     ),
@@ -1529,25 +1550,26 @@ class _LandingScreenState extends State<LandingScreen>
                   Container(
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
-                        colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                        colors: [appwritePink, appwritePurple],
                       ),
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF6366F1).withOpacity(0.4),
+                          color: appwritePink.withOpacity(0.4),
                           blurRadius: 20,
                           offset: const Offset(0, 8),
                         ),
                       ],
                     ),
                     child: ElevatedButton.icon(
-                      icon: const Icon(Icons.rocket_launch, size: 24),
+                      icon: const Icon(Icons.rocket_launch, size: 24, color: Colors.white),
                       label: const Text(
-                        'Create Your Store Now',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      'Create Your Store Now',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                       ),
                       onPressed: () {
                         HapticFeedback.lightImpact();
@@ -1574,7 +1596,7 @@ class _LandingScreenState extends State<LandingScreen>
                     child: const Text(
                       'Already have an account? Sign In',
                       style: TextStyle(
-                        color: Color(0xFF6366F1),
+                        color: appwritePink,
                         fontSize: 18,
                         fontWeight: FontWeight.w500,
                       ),
@@ -1625,7 +1647,6 @@ class _LandingScreenState extends State<LandingScreen>
                   flex: 1,
                   fit: FlexFit.loose,
                   child: _buildFooterSection('Product', [
-                    'Templates',
                     'Features',
                     'Pricing',
                     'Integrations',
@@ -1635,22 +1656,8 @@ class _LandingScreenState extends State<LandingScreen>
                 Flexible(
                   flex: 1,
                   fit: FlexFit.loose,
-                  child: _buildFooterSection('Support', [
-                    'Help Center',
-                    'Contact Us',
-                    'Status',
-                    'API Docs',
-                  ]),
-                ),
-                const SizedBox(width: 40),
-                Flexible(
-                  flex: 1,
-                  fit: FlexFit.loose,
                   child: _buildFooterSection('Company', [
                     'About Us',
-                    'Careers',
-                    'Blog',
-                    'Press',
                   ]),
                 ),
               ],
@@ -1721,7 +1728,7 @@ class _LandingScreenState extends State<LandingScreen>
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                  colors: [appwritePink, appwritePurple],
                 ),
                 borderRadius: BorderRadius.circular(12),
               ),

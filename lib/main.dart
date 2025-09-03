@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:url_strategy/url_strategy.dart';
 
 import 'routing/app_router.dart';
 
 void main() {
+  // Use path-based URLs instead of hash-based
+  setPathUrlStrategy();
   runApp(const MyApp());
 }
 

@@ -205,12 +205,12 @@ class _OrdersScreenState extends State<OrdersScreen>
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                colors: [Color(0xFFFD366E), Color(0xFF7C3AED)],
               ),
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF6366F1).withOpacity(0.3),
+                  color: const Color(0xFFFD366E).withOpacity(0.3),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),
@@ -414,7 +414,7 @@ class _OrdersScreenState extends State<OrdersScreen>
                 HapticFeedback.lightImpact();
               },
               backgroundColor: Colors.white.withOpacity(0.1),
-              selectedColor: const Color(0xFF6366F1).withOpacity(0.3),
+              selectedColor: const Color(0xFFFD366E).withOpacity(0.3),
               checkmarkColor: Colors.white,
               labelStyle: TextStyle(
                 color: isSelected ? Colors.white : Colors.white.withOpacity(0.7),
@@ -424,7 +424,7 @@ class _OrdersScreenState extends State<OrdersScreen>
                 borderRadius: BorderRadius.circular(20),
                 side: BorderSide(
                   color: isSelected
-                      ? const Color(0xFF6366F1)
+                      ? const Color(0xFFFD366E)
                       : Colors.white.withOpacity(0.3),
                 ),
               ),
