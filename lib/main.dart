@@ -5,7 +5,7 @@ import 'routing/app_router.dart';
 
 void main() {
   // Use path-based URLs instead of hash-based
-  //setPathUrlStrategy();
+  setPathUrlStrategy();
   runApp(const MyApp());
 }
 
