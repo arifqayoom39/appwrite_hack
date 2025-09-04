@@ -31,6 +31,11 @@
 
   <title>appwrite_hack</title>
   <link rel="manifest" href="manifest.json">
+
+  <!-- Disable service worker to fix loading issues -->
+  <script>
+    window.flutterServiceWorkerSettings = {enabled: false};
+  </script>
 </head>
 <body>
   <script src="flutter_bootstrap.js" async></script>
