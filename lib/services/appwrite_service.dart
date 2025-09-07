@@ -1,5 +1,7 @@
 import 'package:appwrite/appwrite.dart';
 import 'package:appwrite/models.dart';
+import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 import '../models/product_model.dart';
 import '../models/shop_model.dart';
 import '../models/order_model.dart';
@@ -11,12 +13,14 @@ class AppwriteService {
   static late Client client;
   static late Account account;
   static late Databases databases;
+  static late Storage storage;
 
   static const String databaseId = '68bbbd4e0025e2dd2268'; // Replace with your database ID
   static const String usersCollectionId = 'users'; // Collection ID for users
   static const String shopsCollectionId = '68bbd17d0009df4b552d'; // Collection ID for shops
   static const String productsCollectionId = '68bbcf6800385fb2da69'; // Collection ID for products
   static const String ordersCollectionId = '68bbcbfc002ec6cfbb08'; // Collection ID for orders
+  static const String imagesBucketId = '68bd2be60010ae4d0546'; // Bucket ID for product images
 
   static void init() {
     client = Client()
@@ -25,6 +29,7 @@ class AppwriteService {
 
     account = Account(client);
     databases = Databases(client);
+    storage = Storage(client);
   }
 
   // Authentication methods
@@ -201,6 +206,19 @@ class AppwriteService {
     }
   }
 
+  static Future<Shop?> getShopById(String shopId) async {
+    try {
+      final document = await databases.getDocument(
+        databaseId: databaseId,
+        collectionId: shopsCollectionId,
+        documentId: shopId,
+      );
+      return Shop.fromJson(document.data);
+    } catch (e) {
+      return null;
+    }
+  }
+
   static Future<Shop?> getCurrentUserShop() async {
     try {
       final user = await getCurrentUser();
@@ -300,6 +318,81 @@ class AppwriteService {
     }
   }
 
+  // Image upload methods
+  static Future<String> uploadProductImage(PlatformFile imageFile, String fileName) async {
+    try {
+      final file = await storage.createFile(
+        bucketId: imagesBucketId,
+        fileId: ID.unique(),
+        file: InputFile.fromBytes(
+          bytes: imageFile.bytes!,
+          filename: fileName,
+        ),
+      );
+      return file.$id;
+    } catch (e) {
+      throw Exception('Failed to upload image: $e');
+    }
+  }
+
+  static Future<List<String>> uploadMultipleProductImages(List<PlatformFile> imageFiles) async {
+    List<String> uploadedFileIds = [];
+    try {
+      for (int i = 0; i < imageFiles.length; i++) {
+        final file = imageFiles[i];
+        final fileName = 'product_image_${DateTime.now().millisecondsSinceEpoch}_$i.jpg';
+        final fileId = await uploadProductImage(file, fileName);
+        uploadedFileIds.add(fileId);
+      }
+      return uploadedFileIds;
+    } catch (e) {
+      // If upload fails, delete any already uploaded images
+      for (String fileId in uploadedFileIds) {
+        try {
+          await deleteProductImage(fileId);
+        } catch (deleteError) {
+          print('Failed to delete image $fileId: $deleteError');
+        }
+      }
+      throw Exception('Failed to upload images: $e');
+    }
+  }
+
+  static Future<String> getProductImageUrl(String fileId) async {
+    // Generate URL manually using the correct format
+    return 'https://fra.cloud.appwrite.io/v1/storage/buckets/$imagesBucketId/files/$fileId/view?project=$projectId';
+  }
+
+  static Future<List<String>> getProductImageUrls(List<String> fileIds) async {
+    List<String> urls = [];
+    for (String fileId in fileIds) {
+      final url = await getProductImageUrl(fileId);
+      urls.add(url);
+    }
+    return urls;
+  }
+
+  static Future<void> deleteProductImage(String fileId) async {
+    try {
+      await storage.deleteFile(
+        bucketId: imagesBucketId,
+        fileId: fileId,
+      );
+    } catch (e) {
+      throw Exception('Failed to delete image: $e');
+    }
+  }
+
+  static Future<void> deleteMultipleProductImages(List<String> fileIds) async {
+    for (String fileId in fileIds) {
+      try {
+        await deleteProductImage(fileId);
+      } catch (e) {
+        print('Failed to delete image $fileId: $e');
+      }
+    }
+  }
+
   // Order methods
   static Future<Order> createOrder(Order order) async {
     try {
@@ -367,6 +460,19 @@ class AppwriteService {
       );
     } catch (e) {
       throw Exception('Failed to update order status: $e');
+    }
+  }
+
+  static Future<Order?> getOrderById(String orderId) async {
+    try {
+      final document = await databases.getDocument(
+        databaseId: databaseId,
+        collectionId: ordersCollectionId,
+        documentId: orderId,
+      );
+      return Order.fromJson(document.data);
+    } catch (e) {
+      return null;
     }
   }
 

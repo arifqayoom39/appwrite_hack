@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import '../../../services/appwrite_service.dart';
 import '../../../models/product_model.dart';
 import '../../../models/order_model.dart';
@@ -444,8 +445,8 @@ class _DashboardScreenState extends State<DashboardScreen>
 
   Widget _buildHeader(bool isDesktop) {
     final fullShopUrl = _shopSlug != null 
-      ? 'https://instantecom.appwrite.network/${_shopSlug}'
-      : 'https://instantecom.appwrite.network/my-store';
+      ? 'https://storepe.appwrite.network/${_shopSlug}'
+      : 'https://storepe.appwrite.network/my-store';
     
     return Container(
       padding: EdgeInsets.symmetric(
@@ -496,7 +497,7 @@ class _DashboardScreenState extends State<DashboardScreen>
               ),
               // Profile view icon
               IconButton(
-                onPressed: () => Navigator.pushNamed(context, '/profile'),
+                onPressed: () => context.go('/profile'),
                 icon: const Icon(
                   Icons.person_outline,
                   color: Color(0xFFFD366E),
@@ -592,7 +593,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           crossAxisCount: isDesktop ? 4 : 2,
           mainAxisSpacing: 12,
           crossAxisSpacing: 12,
-          childAspectRatio: isDesktop ? 1.5 : 1.2,
+          childAspectRatio: isDesktop ? 1.5 : 1.0,
           children: [
             _buildStatCard(
               title: 'Total Revenue',
@@ -600,6 +601,7 @@ class _DashboardScreenState extends State<DashboardScreen>
               change: _calculateRevenueChange(),
               icon: Icons.attach_money,
               isPositive: _calculateRevenueChange().startsWith('+'),
+              isDesktop: isDesktop,
             ),
             _buildStatCard(
               title: 'Total Orders',
@@ -607,6 +609,7 @@ class _DashboardScreenState extends State<DashboardScreen>
               change: _calculateOrdersChange(),
               icon: Icons.shopping_cart,
               isPositive: _calculateOrdersChange().startsWith('+'),
+              isDesktop: isDesktop,
             ),
             _buildStatCard(
               title: 'Today\'s Revenue',
@@ -614,6 +617,7 @@ class _DashboardScreenState extends State<DashboardScreen>
               change: '+${_sellerStats['todayOrders']} orders',
               icon: Icons.trending_up,
               isPositive: true,
+              isDesktop: isDesktop,
             ),
             _buildStatCard(
               title: 'Active Orders',
@@ -622,6 +626,7 @@ class _DashboardScreenState extends State<DashboardScreen>
               icon: Icons.pending,
               isPositive: false,
               showBadge: _sellerStats['pendingOrders'] > 0,
+              isDesktop: isDesktop,
             ),
           ],
         ),
@@ -636,6 +641,7 @@ class _DashboardScreenState extends State<DashboardScreen>
     required IconData icon,
     required bool isPositive,
     bool showBadge = false,
+    required bool isDesktop,
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -678,32 +684,39 @@ class _DashboardScreenState extends State<DashboardScreen>
             ],
           ),
           const SizedBox(height: 8),
-          Text(
-            value,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
+          Flexible(
+            child: Text(
+              value,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: isDesktop ? 18 : 14,
+                fontWeight: FontWeight.bold,
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
           const SizedBox(height: 2),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                title,
-                style: TextStyle(
-                  color: Colors.white.withOpacity(0.6),
-                  fontSize: 12,
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.6),
+                    fontSize: isDesktop ? 12 : 10,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
               Text(
                 change,
                 style: TextStyle(
                   color: isPositive ? const Color(0xFF4CAF50) : const Color(0xFFF44336),
-                  fontSize: 10,
+                  fontSize: isDesktop ? 10 : 8,
                   fontWeight: FontWeight.w500,
                 ),
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
@@ -734,19 +747,19 @@ class _DashboardScreenState extends State<DashboardScreen>
             crossAxisCount: isDesktop ? 4 : 2,
             crossAxisSpacing: 12,
             mainAxisSpacing: 12,
-            childAspectRatio: 1.5,
+            childAspectRatio: isDesktop ? 1.5 : 1.2,
           ),
           itemCount: _quickActions.length,
           itemBuilder: (context, index) {
             final action = _quickActions[index];
-            return _buildActionCard(action);
+            return _buildActionCard(action, isDesktop);
           },
         ),
       ],
     );
   }
 
-  Widget _buildActionCard(Map<String, dynamic> action) {
+  Widget _buildActionCard(Map<String, dynamic> action, bool isDesktop) {
     return GestureDetector(
       onTap: () async {
         HapticFeedback.lightImpact();
@@ -754,15 +767,15 @@ class _DashboardScreenState extends State<DashboardScreen>
           try {
             final shop = await AppwriteService.getCurrentUserShop();
             if (shop != null) {
-              Navigator.pushNamed(context, action['route'], arguments: shop.slug);
+              context.go('/shop-preview?slug=${shop.slug}');
             } else {
-              Navigator.pushNamed(context, '/create-shop');
+              context.go('/create-shop');
             }
           } catch (e) {
-            Navigator.pushNamed(context, '/create-shop');
+            context.go('/create-shop');
           }
         } else {
-          Navigator.pushNamed(context, action['route']);
+          context.go(action['route']);
         }
       },
       child: Container(
@@ -785,20 +798,28 @@ class _DashboardScreenState extends State<DashboardScreen>
               size: 20,
             ),
             const Spacer(),
-            Text(
-              action['title'],
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
+            Flexible(
+              child: Text(
+                action['title'],
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: isDesktop ? 14 : 12,
+                  fontWeight: FontWeight.w600,
+                ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
               ),
             ),
             const SizedBox(height: 2),
-            Text(
-              action['subtitle'],
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.6),
-                fontSize: 11,
+            Flexible(
+              child: Text(
+                action['subtitle'],
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.6),
+                  fontSize: isDesktop ? 11 : 9,
+                ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 2,
               ),
             ),
           ],

@@ -2,6 +2,9 @@ import '../features/seller/screens/shop_preview_screen.dart';
 import '../features/buyer/screens/storefront_screen.dart';
 import '../features/buyer/screens/product_detail_screen.dart';
 import '../features/buyer/screens/cart_screen.dart';
+import '../features/buyer/screens/order_details_screen.dart';
+import '../features/buyer/screens/order_success_screen.dart';
+import '../features/buyer/screens/order_tracking_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../features/auth/screens/login_screen.dart';
@@ -70,6 +73,24 @@ class AppRouter {
         builder: (context, state) => const CartScreen(),
       ),
       GoRoute(
+        path: '/order-details',
+        builder: (context, state) => const OrderDetailsScreen(),
+      ),
+      GoRoute(
+        path: '/order-success/:orderId',
+        builder: (context, state) {
+          final orderId = state.pathParameters['orderId']!;
+          return OrderSuccessScreen(orderId: orderId);
+        },
+      ),
+      GoRoute(
+        path: '/order-tracking',
+        builder: (context, state) {
+          final orderId = state.uri.queryParameters['orderId'];
+          return OrderTrackingScreen(orderId: orderId);
+        },
+      ),
+      GoRoute(
         path: '/orders',
         builder: (context, state) => const OrdersScreen(),
       ),
@@ -104,7 +125,7 @@ class AppRouter {
           final predefinedRoutes = [
             'login', 'signup', 'profile', 'about', 'features', 'pricing',
             'support', 'dashboard', 'create-shop', 'product-upload', 'orders',
-            'cart', 'shop-preview', 'product-detail'
+            'cart', 'shop-preview', 'product-detail', 'order-details', 'order-success', 'order-tracking'
           ];
           if (!predefinedRoutes.contains(shopSlug)) {
             return StorefrontScreen(shopSlug: shopSlug);

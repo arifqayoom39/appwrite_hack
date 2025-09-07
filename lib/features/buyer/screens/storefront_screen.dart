@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../services/appwrite_service.dart';
 import '../../../models/product_model.dart';
 import '../../../models/shop_model.dart';
@@ -14,8 +15,7 @@ class StorefrontScreen extends StatefulWidget {
   State<StorefrontScreen> createState() => _StorefrontScreenState();
 }
 
-class _StorefrontScreenState extends State<StorefrontScreen>
-    with TickerProviderStateMixin {
+class _StorefrontScreenState extends State<StorefrontScreen> {
   Shop? _shop;
   List<Product> _products = [];
   List<Product> _filteredProducts = [];
@@ -23,115 +23,66 @@ class _StorefrontScreenState extends State<StorefrontScreen>
   String? _error;
   String _selectedCategory = 'All';
   String _searchQuery = '';
-  late AnimationController _fadeController;
-  late AnimationController _slideController;
-  late Animation<double> _fadeAnimation;
-  late Animation<Offset> _slideAnimation;
 
-  // Theme definitions (same as shop preview)
+  // App colors
+  static const Color primaryColor = Color(0xFFFD366E);
+  static const Color backgroundColor = Colors.white;
+  static const Color textColor = Color(0xFF3D3D3D);
+  static const Color lightGrayColor = Color(0xFFF5F5F5);
+  static const Color darkGrayColor = Color(0xFF9E9E9E);
+
+  // Simplified theme - clean like Swiggy
   final Map<String, ThemeData> _themes = {
-    'Midnight Pro': ThemeData(
+    'Light': ThemeData(
+      brightness: Brightness.light,
+      primaryColor: primaryColor,
+      scaffoldBackgroundColor: backgroundColor,
+      colorScheme: const ColorScheme.light(
+        primary: primaryColor,
+        secondary: primaryColor,
+        surface: Colors.white,
+        background: backgroundColor,
+        onBackground: textColor,
+      ),
+      cardTheme: const CardTheme(
+        color: Colors.white,
+        elevation: 0,
+      ),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Colors.white,
+        elevation: 0.5,
+        iconTheme: IconThemeData(color: textColor),
+      ),
+      textTheme: const TextTheme(
+        titleLarge: TextStyle(color: textColor, fontWeight: FontWeight.w600),
+        bodyLarge: TextStyle(color: textColor),
+        bodyMedium: TextStyle(color: textColor),
+      ),
+    ),
+    'Dark': ThemeData(
       brightness: Brightness.dark,
-      primarySwatch: Colors.blue,
+      primaryColor: primaryColor,
+      scaffoldBackgroundColor: const Color(0xFF121212),
       colorScheme: const ColorScheme.dark(
-        tertiary: Color(0xFF06B6D4),
-        primary: Color(0xFFFD366E),
-        secondary: Color(0xFF7C3AED),
+        primary: primaryColor,
+        secondary: primaryColor,
+        surface: Color(0xFF1E1E1E),
+        background: Color(0xFF121212),
+        onBackground: Colors.white,
       ),
-      scaffoldBackgroundColor: const Color(0xFF0F172A),
-      cardTheme: CardTheme(
-        color: const Color(0xFF1E293B),
+      cardTheme: const CardTheme(
+        color: Color(0xFF1E1E1E),
+        elevation: 0,
       ),
-    ),
-    'Ocean Breeze': ThemeData(
-      brightness: Brightness.light,
-      primarySwatch: Colors.cyan,
-      colorScheme: const ColorScheme.light(
-        tertiary: Color(0xFF3B82F6),
-        primary: Color(0xFF0891B2),
-        secondary: Color(0xFF06B6D4),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Color(0xFF1E1E1E),
+        elevation: 0.5,
+        iconTheme: IconThemeData(color: Colors.white),
       ),
-      scaffoldBackgroundColor: const Color(0xFFF0F9FF),
-      cardTheme: CardTheme(
-        color: Colors.white,
-      ),
-    ),
-    'Sunset Glow': ThemeData(
-      brightness: Brightness.light,
-      primarySwatch: Colors.orange,
-      colorScheme: const ColorScheme.light(
-        tertiary: Color(0xFFDC2626),
-        primary: Color(0xFFEA580C),
-        secondary: Color(0xFFF59E0B),
-      ),
-      scaffoldBackgroundColor: const Color(0xFFFFF7ED),
-      cardTheme: CardTheme(
-        color: Colors.white,
-      ),
-    ),
-    'Forest Zen': ThemeData(
-      brightness: Brightness.light,
-      primarySwatch: Colors.green,
-      colorScheme: const ColorScheme.light(
-        tertiary: Color(0xFF84CC16),
-        primary: Color(0xFF059669),
-        secondary: Color(0xFF10B981),
-      ),
-      scaffoldBackgroundColor: const Color(0xFFF0FDF4),
-      cardTheme: CardTheme(
-        color: Colors.white,
-      ),
-    ),
-    'Royal Purple': ThemeData(
-      brightness: Brightness.dark,
-      primarySwatch: Colors.purple,
-      colorScheme: const ColorScheme.dark(
-        tertiary: Color(0xFFEC4899),
-        primary: Color(0xFF7C3AED),
-        secondary: Color(0xFFA855F7),
-      ),
-      scaffoldBackgroundColor: const Color(0xFF1E1B4B),
-      cardTheme: CardTheme(
-        color: const Color(0xFF312E81),
-      ),
-    ),
-    'Aurora': ThemeData(
-      brightness: Brightness.light,
-      primarySwatch: Colors.pink,
-      colorScheme: const ColorScheme.light(
-        tertiary: Color(0xFF7C3AED),
-        primary: Color(0xFFDB2777),
-        secondary: Color(0xFFEC4899),
-      ),
-      scaffoldBackgroundColor: const Color(0xFFFDF2F8),
-      cardTheme: CardTheme(
-        color: Colors.white,
-      ),
-    ),
-    'Cosmic Dark': ThemeData(
-      brightness: Brightness.dark,
-      primarySwatch: Colors.indigo,
-      colorScheme: const ColorScheme.dark(
-        tertiary: Color(0xFF10B981),
-        primary: Color(0xFF4F46E5),
-        secondary: Color(0xFFFD366E),
-      ),
-      scaffoldBackgroundColor: const Color(0xFF111827),
-      cardTheme: CardTheme(
-        color: const Color(0xFF374151),
-      ),
-    ),
-    'Golden Luxury': ThemeData(
-      brightness: Brightness.light,
-      primarySwatch: Colors.amber,
-      colorScheme: const ColorScheme.light(
-        tertiary: Color(0xFF92400E),
-        primary: Color(0xFFD97706),
-        secondary: Color(0xFFF59E0B),
-      ),
-      scaffoldBackgroundColor: const Color(0xFFFFFBEB),
-      cardTheme: CardTheme(
-        color: Colors.white,
+      textTheme: const TextTheme(
+        titleLarge: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+        bodyLarge: TextStyle(color: Colors.white),
+        bodyMedium: TextStyle(color: Colors.white70),
       ),
     ),
   };
@@ -139,24 +90,6 @@ class _StorefrontScreenState extends State<StorefrontScreen>
   @override
   void initState() {
     super.initState();
-    _fadeController = AnimationController(
-      duration: const Duration(milliseconds: 800),
-      vsync: this,
-    );
-    _slideController = AnimationController(
-      duration: const Duration(milliseconds: 600),
-      vsync: this,
-    );
-
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut),
-    );
-
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.1),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOutBack));
-
     _loadShopData();
   }
 
@@ -187,10 +120,6 @@ class _StorefrontScreenState extends State<StorefrontScreen>
       setState(() {
         _isLoading = false;
       });
-
-      // Start animations
-      _fadeController.forward();
-      _slideController.forward();
     } catch (e) {
       setState(() {
         _error = 'Failed to load shop data: $e';
@@ -220,19 +149,20 @@ class _StorefrontScreenState extends State<StorefrontScreen>
 
   @override
   void dispose() {
-    _fadeController.dispose();
-    _slideController.dispose();
     super.dispose();
   }
+
+  // Helper to check if on mobile device
+  bool isMobile(BuildContext context) => MediaQuery.of(context).size.width < 600;
 
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
       return const Scaffold(
-        backgroundColor: Color(0xFF0F172A),
+        backgroundColor: Colors.white,
         body: Center(
           child: CircularProgressIndicator(
-            color: Color(0xFFFD366E),
+            color: primaryColor,
           ),
         ),
       );
@@ -240,28 +170,33 @@ class _StorefrontScreenState extends State<StorefrontScreen>
 
     if (_error != null) {
       return Scaffold(
-        backgroundColor: const Color(0xFF0F172A),
+        backgroundColor: Colors.white,
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
                 Icons.error_outline,
-                color: Colors.white.withOpacity(0.7),
+                color: Colors.grey[400],
                 size: 64,
               ),
               const SizedBox(height: 16),
               Text(
                 _error!,
-                style: const TextStyle(color: Colors.white),
+                style: TextStyle(color: textColor),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _loadShopData,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFD366E),
+                  backgroundColor: primaryColor,
                   foregroundColor: Colors.white,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
                 child: const Text('Retry'),
               ),
@@ -271,52 +206,44 @@ class _StorefrontScreenState extends State<StorefrontScreen>
       );
     }
 
-    // Get the theme from shop settings
-    final shopTheme = _shop?.theme ?? 'Midnight Pro';
-    final currentTheme = _themes[shopTheme] ?? _themes['Midnight Pro']!;
+    // Get theme - simplify to just light/dark
+    final isDarkMode = MediaQuery.of(context).platformBrightness == Brightness.dark;
+    final currentTheme = _themes[isDarkMode ? 'Dark' : 'Light']!;
 
     return Theme(
       data: currentTheme,
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: _getThemeGradient(shopTheme),
+      child: Scaffold(
+        backgroundColor: currentTheme.scaffoldBackgroundColor,
+        appBar: _buildAppBar(currentTheme),
+        floatingActionButton: Consumer(
+          builder: (context, ref, child) {
+            final itemCount = ref.watch(cartProvider.notifier).itemCount;
+
+            if (itemCount == 0) return const SizedBox.shrink();
+
+            return FloatingActionButton.extended(
+              onPressed: () => context.go('/cart'),
+              backgroundColor: primaryColor,
+              foregroundColor: Colors.white,
+              icon: const Icon(Icons.shopping_cart),
+              label: Text('$itemCount'),
+              elevation: 2,
+            );
+          },
         ),
-        child: Scaffold(
-          backgroundColor: Colors.transparent,
-          floatingActionButton: Consumer(
-            builder: (context, ref, child) {
-              final itemCount = ref.watch(cartProvider.notifier).itemCount;
-
-              if (itemCount == 0) return const SizedBox.shrink();
-
-              return FloatingActionButton.extended(
-                onPressed: () => Navigator.pushNamed(context, '/cart'),
-                backgroundColor: Theme.of(context).colorScheme.primary,
-                foregroundColor: Colors.white,
-                icon: const Icon(Icons.shopping_cart),
-                label: Text('$itemCount'),
-                elevation: 8,
-              );
-            },
-          ),
-          body: SafeArea(
-            child: FadeTransition(
-              opacity: _fadeAnimation,
-              child: SlideTransition(
-                position: _slideAnimation,
-                child: Column(
-                  children: [
-                    _buildShopHeader(),
-                    _buildSearchBar(),
-                    _buildCategoryFilters(),
-                    Expanded(
-                      child: _filteredProducts.isEmpty
-                          ? _buildEmptyState()
-                          : _buildProductGrid(),
-                    ),
-                  ],
-                ),
-              ),
+        body: SafeArea(
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildShopHeader(currentTheme),
+                _buildSearchBar(currentTheme),
+                _buildCategoryFilters(currentTheme),
+                _filteredProducts.isEmpty
+                    ? _buildEmptyState(currentTheme)
+                    : _buildProductGrid(currentTheme),
+                const SizedBox(height: 80), // Space for FAB
+              ],
             ),
           ),
         ),
@@ -324,135 +251,209 @@ class _StorefrontScreenState extends State<StorefrontScreen>
     );
   }
 
-  Widget _buildShopHeader() {
-    final theme = Theme.of(context);
+  PreferredSizeWidget _buildAppBar(ThemeData theme) {
+    return AppBar(
+      backgroundColor: theme.scaffoldBackgroundColor,
+      elevation: 0.5,
+      scrolledUnderElevation: 1,
+      surfaceTintColor: Colors.transparent,
+      centerTitle: false,
+      title: Text(
+        _shop?.name ?? 'Store',
+        style: TextStyle(
+          fontWeight: FontWeight.w600,
+          fontSize: 18,
+          color: theme.brightness == Brightness.dark ? Colors.white : textColor,
+        ),
+      ),
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back),
+        onPressed: () => Navigator.pop(context),
+        color: theme.brightness == Brightness.dark ? Colors.white : textColor,
+      ),
+      actions: [
+        Consumer(
+          builder: (context, ref, child) {
+            final itemCount = ref.watch(cartProvider.notifier).itemCount;
+            return IconButton(
+              icon: Badge(
+                label: itemCount > 0 ? Text('$itemCount') : null,
+                child: Icon(
+                  Icons.shopping_cart_outlined,
+                  color: theme.brightness == Brightness.dark ? Colors.white : textColor,
+                  size: 22,
+                ),
+              ),
+              onPressed: () => context.go('/cart'),
+            );
+          },
+        ),
+        IconButton(
+          icon: Icon(
+            Icons.search,
+            color: theme.brightness == Brightness.dark ? Colors.white : textColor,
+            size: 22,
+          ),
+          onPressed: () {
+            // Focus on search field
+            FocusScope.of(context).requestFocus(FocusNode());
+          },
+        ),
+        const SizedBox(width: 8),
+      ],
+    );
+  }
 
+  Widget _buildShopHeader(ThemeData theme) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Shop Logo and Banner
+          // Shop Banner - sleeker and minimal
           if (_shop?.bannerUrl != null)
             Container(
               height: 120,
               width: double.infinity,
               margin: const EdgeInsets.only(bottom: 16),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                image: DecorationImage(
-                  image: NetworkImage(_shop!.bannerUrl!),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.network(
+                  _shop!.bannerUrl!,
                   fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) =>
+                      Container(
+                        color: lightGrayColor,
+                        child: Icon(
+                          Icons.store_outlined,
+                          color: darkGrayColor,
+                          size: 32,
+                        ),
+                      ),
                 ),
               ),
             ),
 
+          // Shop info row
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Shop Logo
-              Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      theme.colorScheme.primary,
-                      theme.colorScheme.secondary,
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: theme.colorScheme.primary.withOpacity(0.3),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
+              // Left side: Logo and description
+              Expanded(
+                flex: 2,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // Shop Logo - simplified
+                    if (_shop?.logoUrl != null)
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: lightGrayColor,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.network(
+                            _shop!.logoUrl!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                Icon(Icons.store_outlined, color: darkGrayColor, size: 24),
+                          ),
+                        ),
+                      )
+                    else
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: lightGrayColor,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(Icons.store_outlined, color: darkGrayColor, size: 24),
+                      ),
+                    const SizedBox(width: 12),
+
+                    // Shop description
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (_shop?.description.isNotEmpty ?? false)
+                            Text(
+                              _shop!.description,
+                              style: TextStyle(
+                                color: theme.brightness == Brightness.dark
+                                    ? Colors.white70
+                                    : textColor,
+                                fontSize: 14,
+                                height: 1.4,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
-                child: _shop?.logoUrl != null
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: Image.network(
-                          _shop!.logoUrl!,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) =>
-                              const Icon(Icons.store, color: Colors.white, size: 30),
-                        ),
-                      )
-                    : const Icon(Icons.store, color: Colors.white, size: 30),
               ),
-              const SizedBox(width: 16),
+
+              // Right side: Email and phone
               Expanded(
+                flex: 1,
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text(
-                      _shop?.name ?? 'Shop',
-                      style: TextStyle(
-                        color: theme.brightness == Brightness.dark
-                            ? Colors.white
-                            : Colors.black87,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    if (_shop?.description.isNotEmpty ?? false)
+                    if (_shop?.email.isNotEmpty ?? false)
                       Text(
-                        _shop!.description,
+                        'Email: ${_shop!.email}',
                         style: TextStyle(
                           color: theme.brightness == Brightness.dark
-                              ? Colors.white.withOpacity(0.7)
-                              : Colors.black54,
-                          fontSize: 14,
+                              ? Colors.white70
+                              : textColor,
+                          fontSize: 12,
                         ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.end,
+                      ),
+                    if (_shop?.phone.isNotEmpty ?? false)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2),
+                        child: Text(
+                          'Phone: ${_shop!.phone}',
+                          style: TextStyle(
+                            color: theme.brightness == Brightness.dark
+                                ? Colors.white70
+                                : textColor,
+                            fontSize: 12,
+                          ),
+                          textAlign: TextAlign.end,
+                        ),
                       ),
                   ],
                 ),
               ),
             ],
           ),
-          Consumer(
-            builder: (context, ref, child) {
-              final itemCount = ref.watch(cartProvider.notifier).itemCount;
-              return Container(
-                alignment: Alignment.centerRight,
-                margin: const EdgeInsets.only(top: 16),
-                child: IconButton(
-                  icon: Badge(
-                    label: itemCount > 0 ? Text('$itemCount') : null,
-                    child: Icon(
-                      Icons.shopping_cart,
-                      color: theme.brightness == Brightness.dark
-                          ? Colors.white
-                          : Colors.black87,
-                    ),
-                  ),
-                  onPressed: () => Navigator.pushNamed(context, '/cart'),
-                ),
-              );
-            },
-          ),
         ],
       ),
     );
   }
 
-  Widget _buildSearchBar() {
-    final theme = Theme.of(context);
-
+  Widget _buildSearchBar(ThemeData theme) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      height: 48,
       decoration: BoxDecoration(
-        color: theme.brightness == Brightness.dark
-            ? Colors.white.withOpacity(0.1)
-            : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: theme.brightness == Brightness.dark
-              ? Colors.white.withOpacity(0.2)
-              : Colors.grey.withOpacity(0.2),
-        ),
+        color: theme.brightness == Brightness.dark 
+            ? const Color(0xFF2A2A2A) 
+            : lightGrayColor,
+        borderRadius: BorderRadius.circular(8),
+        border: theme.brightness == Brightness.dark
+            ? Border.all(color: Colors.grey[800]!, width: 0.5)
+            : null,
       ),
       child: TextField(
         onChanged: (value) {
@@ -460,33 +461,34 @@ class _StorefrontScreenState extends State<StorefrontScreen>
           _filterProducts();
         },
         style: TextStyle(
+          fontSize: 15,
           color: theme.brightness == Brightness.dark
               ? Colors.white
-              : Colors.black87,
+              : textColor,
         ),
         decoration: InputDecoration(
-          hintText: 'Search products...',
+          hintText: 'Search items...',
           hintStyle: TextStyle(
             color: theme.brightness == Brightness.dark
-                ? Colors.white.withOpacity(0.5)
-                : Colors.black38,
+                ? Colors.grey[500]
+                : darkGrayColor,
+            fontSize: 15,
           ),
           prefixIcon: Icon(
             Icons.search,
-            color: theme.colorScheme.primary,
+            color: darkGrayColor,
+            size: 20,
           ),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         ),
       ),
     );
   }
 
-  Widget _buildCategoryFilters() {
-    final theme = Theme.of(context);
-
+  Widget _buildCategoryFilters(ThemeData theme) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      margin: const EdgeInsets.only(left: 16, bottom: 8),
       height: 40,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
@@ -497,8 +499,17 @@ class _StorefrontScreenState extends State<StorefrontScreen>
 
           return Container(
             margin: const EdgeInsets.only(right: 8),
-            child: FilterChip(
-              label: Text(category),
+            child: ChoiceChip(
+              label: Text(
+                category,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
+                  color: isSelected 
+                      ? (theme.brightness == Brightness.dark ? Colors.white : primaryColor)
+                      : (theme.brightness == Brightness.dark ? Colors.grey[400] : darkGrayColor),
+                ),
+              ),
               selected: isSelected,
               onSelected: (selected) {
                 setState(() {
@@ -507,27 +518,19 @@ class _StorefrontScreenState extends State<StorefrontScreen>
                 });
                 HapticFeedback.lightImpact();
               },
-              backgroundColor: theme.brightness == Brightness.dark
-                  ? Colors.white.withOpacity(0.1)
-                  : Colors.white,
-              selectedColor: theme.colorScheme.primary.withOpacity(0.3),
-              checkmarkColor: theme.brightness == Brightness.dark
-                  ? Colors.white
-                  : Colors.black87,
-              labelStyle: TextStyle(
-                color: isSelected
-                    ? (theme.brightness == Brightness.dark ? Colors.white : Colors.black87)
-                    : (theme.brightness == Brightness.dark ? Colors.white.withOpacity(0.7) : Colors.black54),
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-              ),
+              backgroundColor: theme.brightness == Brightness.dark 
+                  ? const Color(0xFF2A2A2A)
+                  : lightGrayColor,
+              selectedColor: theme.brightness == Brightness.dark
+                  ? primaryColor.withOpacity(0.15)
+                  : primaryColor.withOpacity(0.1),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-                side: BorderSide(
-                  color: isSelected
-                      ? theme.colorScheme.primary
-                      : (theme.brightness == Brightness.dark ? Colors.white.withOpacity(0.3) : Colors.grey.withOpacity(0.3)),
-                ),
+                borderRadius: BorderRadius.circular(16),
+                side: isSelected
+                    ? BorderSide(color: primaryColor.withOpacity(0.5), width: 1)
+                    : BorderSide.none,
               ),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
             ),
           );
         },
@@ -535,19 +538,19 @@ class _StorefrontScreenState extends State<StorefrontScreen>
     );
   }
 
-  Widget _buildEmptyState() {
-    final theme = Theme.of(context);
-
-    return Center(
+  Widget _buildEmptyState(ThemeData theme) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 20,
+        vertical: 60,
+      ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            Icons.inventory_2_outlined,
-            color: theme.brightness == Brightness.dark
-                ? Colors.white.withOpacity(0.5)
-                : Colors.black38,
-            size: 64,
+            Icons.search_off_outlined,
+            color: darkGrayColor,
+            size: 48,
           ),
           const SizedBox(height: 16),
           Text(
@@ -556,9 +559,10 @@ class _StorefrontScreenState extends State<StorefrontScreen>
                 : 'No products available',
             style: TextStyle(
               color: theme.brightness == Brightness.dark
-                  ? Colors.white.withOpacity(0.7)
-                  : Colors.black54,
-              fontSize: 18,
+                  ? Colors.white
+                  : textColor,
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
             ),
           ),
           if (_searchQuery.isNotEmpty || _selectedCategory != 'All')
@@ -567,9 +571,7 @@ class _StorefrontScreenState extends State<StorefrontScreen>
               child: Text(
                 'Try adjusting your search or filter',
                 style: TextStyle(
-                  color: theme.brightness == Brightness.dark
-                      ? Colors.white.withOpacity(0.5)
-                      : Colors.black38,
+                  color: darkGrayColor,
                   fontSize: 14,
                 ),
               ),
@@ -579,171 +581,123 @@ class _StorefrontScreenState extends State<StorefrontScreen>
     );
   }
 
-  Widget _buildProductGrid() {
-    return GridView.builder(
-      padding: const EdgeInsets.all(20),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-        childAspectRatio: 0.75,
+  Widget _buildProductGrid(ThemeData theme) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: GridView.builder(
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: isMobile(context) ? 2 : 3,
+          childAspectRatio: 0.75,
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 16,
+        ),
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: _filteredProducts.length,
+        itemBuilder: (context, index) {
+          return _buildProductCard(_filteredProducts[index], theme);
+        },
       ),
-      itemCount: _filteredProducts.length,
-      itemBuilder: (context, index) {
-        final product = _filteredProducts[index];
-        return _buildProductCard(product);
-      },
     );
   }
 
-  Widget _buildProductCard(Product product) {
+  Widget _buildProductCard(Product product, ThemeData theme) {
     final hasSale = product.salePrice != null && product.salePrice! < product.price;
-    final theme = Theme.of(context);
 
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.brightness == Brightness.dark
-            ? Colors.white.withOpacity(0.1)
-            : Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: theme.brightness == Brightness.dark
-              ? Colors.white.withOpacity(0.2)
-              : Colors.grey.withOpacity(0.2),
-        ),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(20),
-          onTap: () => _showProductDetails(product),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Product Image
-                Expanded(
-                  child: Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      color: theme.brightness == Brightness.dark
-                          ? Colors.white.withOpacity(0.1)
-                          : Colors.grey.withOpacity(0.1),
-                    ),
-                    child: product.images.isNotEmpty
-                        ? ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: Image.network(
-                              product.images.first,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  const Icon(Icons.image, color: Colors.white, size: 40),
+    return GestureDetector(
+      onTap: () => _showProductDetails(product),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Product Image
+          AspectRatio(
+            aspectRatio: 1,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                color: theme.brightness == Brightness.dark
+                    ? const Color(0xFF2A2A2A)
+                    : lightGrayColor,
+                child: product.images.isNotEmpty
+                    ? Image.network(
+                        product.images.first,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                            Center(
+                              child: Icon(
+                                Icons.image_not_supported_outlined,
+                                color: darkGrayColor,
+                                size: 24,
+                              ),
                             ),
-                          )
-                        : Icon(
-                            Icons.inventory,
-                            color: theme.brightness == Brightness.dark
-                                ? Colors.white
-                                : Colors.grey,
-                            size: 40,
-                          ),
-                  ),
-                ),
-
-                const SizedBox(height: 12),
-
-                // Product Name
-                Text(
-                  product.name,
-                  style: TextStyle(
-                    color: theme.brightness == Brightness.dark
-                        ? Colors.white
-                        : Colors.black87,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-
-                const SizedBox(height: 4),
-
-                // Product Price
-                Row(
-                  children: [
-                    if (hasSale) ...[
-                      Text(
-                        '\$${product.price.toStringAsFixed(2)}',
-                        style: TextStyle(
-                          color: theme.brightness == Brightness.dark
-                              ? Colors.white.withOpacity(0.5)
-                              : Colors.black54,
-                          fontSize: 12,
-                          decoration: TextDecoration.lineThrough,
+                      )
+                    : Center(
+                        child: Icon(
+                          Icons.inventory_2_outlined,
+                          color: darkGrayColor,
+                          size: 24,
                         ),
                       ),
-                      const SizedBox(width: 8),
-                    ],
-                    Text(
-                      '\$${(product.salePrice ?? product.price).toStringAsFixed(2)}',
-                      style: TextStyle(
-                        color: theme.colorScheme.primary,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 4),
-
-                // Stock Status
-                Row(
-                  children: [
-                    Icon(
-                      product.stock > 0 ? Icons.check_circle : Icons.cancel,
-                      color: product.stock > 0
-                          ? const Color(0xFF10B981)
-                          : const Color(0xFFEF4444),
-                      size: 14,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      product.stock > 0 ? '${product.stock} in stock' : 'Out of stock',
-                      style: TextStyle(
-                        color: product.stock > 0
-                            ? const Color(0xFF10B981)
-                            : const Color(0xFFEF4444),
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-
-                // Category Tag
-                if (product.category.isNotEmpty)
-                  Container(
-                    margin: const EdgeInsets.only(top: 8),
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.primary.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      product.category,
-                      style: TextStyle(
-                        color: theme.colorScheme.primary,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-              ],
+              ),
             ),
           ),
-        ),
+
+          const SizedBox(height: 8),
+
+          // Product Name
+          Text(
+            product.name,
+            style: TextStyle(
+              color: theme.brightness == Brightness.dark 
+                  ? Colors.white 
+                  : textColor,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+
+          const SizedBox(height: 4),
+
+          // Price row
+          Row(
+            children: [
+              if (hasSale) ...[
+                Text(
+                  '\$${product.price.toStringAsFixed(2)}',
+                  style: TextStyle(
+                    color: darkGrayColor,
+                    fontSize: 12,
+                    decoration: TextDecoration.lineThrough,
+                  ),
+                ),
+                const SizedBox(width: 6),
+              ],
+              Text(
+                '\$${(product.salePrice ?? product.price).toStringAsFixed(2)}',
+                style: TextStyle(
+                  color: primaryColor,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const Spacer(),
+              
+              // Stock indicator - minimalistic dot
+              Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: product.stock > 0
+                      ? const Color(0xFF4CAF50)
+                      : const Color(0xFFE53935),
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -751,80 +705,20 @@ class _StorefrontScreenState extends State<StorefrontScreen>
   void _showProductDetails(Product product) {
     if (_shop == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Shop data not available. Please try again.'),
-          backgroundColor: Color(0xFFEF4444),
+        SnackBar(
+          content: const Text('Shop data not available. Please try again.'),
+          backgroundColor: primaryColor,
         ),
       );
       return;
     }
 
-    Navigator.pushNamed(
-      context,
+    context.push(
       '/product-detail',
-      arguments: {
+      extra: {
         'product': product,
         'shop': _shop!,
       },
     );
-  }
-
-  LinearGradient _getThemeGradient(String themeName) {
-    switch (themeName) {
-      case 'Midnight Pro':
-        return const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF0F172A), Color(0xFF1E293B), Color(0xFF334155)],
-        );
-      case 'Ocean Breeze':
-        return const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF0EA5E9), Color(0xFF06B6D4), Color(0xFF0891B2)],
-        );
-      case 'Sunset Glow':
-        return const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFFEA580C), Color(0xFFF59E0B), Color(0xFFFBBF24)],
-        );
-      case 'Forest Zen':
-        return const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF059669), Color(0xFF10B981), Color(0xFF34D399)],
-        );
-      case 'Royal Purple':
-        return const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF7C3AED), Color(0xFFA855F7), Color(0xFFC084FC)],
-        );
-      case 'Aurora':
-        return const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFFEC4899), Color(0xFFF472B6), Color(0xFFFBBF24)],
-        );
-      case 'Cosmic Dark':
-        return const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFFFD366E), Color(0xFF7C3AED), Color(0xFF10B981)],
-        );
-      case 'Golden Luxury':
-        return const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFFF59E0B), Color(0xFFFBBF24), Color(0xFFFDE047)],
-        );
-      default:
-        return const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF0F172A), Color(0xFF1E293B), Color(0xFF334155)],
-        );
-    }
   }
 }

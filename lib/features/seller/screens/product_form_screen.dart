@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
+import 'package:file_picker/file_picker.dart';
 import '../../../services/appwrite_service.dart';
 import '../../../models/product_model.dart';
 
@@ -34,12 +36,55 @@ class _ProductFormScreenState extends State<ProductFormScreen>
   bool _isDownloadable = false;
   bool _manageStock = true;
   bool _allowBackorders = false;
-  List<String> _selectedImages = [];
+  List<PlatformFile> _selectedImages = [];
   List<String> _tags = [];
-  List<Map<String, dynamic>> _attributes = [];
 
   // Loading state
   bool _isSubmitting = false;
+  bool _isPickingImage = false;
+
+  Future<void> _pickImages() async {
+    if (_isPickingImage) return;
+
+    setState(() {
+      _isPickingImage = true;
+    });
+
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.image,
+        allowMultiple: true,
+        withData: true,
+      );
+
+      if (result != null) {
+        setState(() {
+          _selectedImages.addAll(result.files);
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to pick images: $e'),
+            backgroundColor: const Color(0xFFEF4444),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isPickingImage = false;
+        });
+      }
+    }
+  }
+
+  void _removeImage(int index) {
+    setState(() {
+      _selectedImages.removeAt(index);
+    });
+  }
 
   final List<String> _categories = [
     'Electronics',
@@ -119,6 +164,13 @@ class _ProductFormScreenState extends State<ProductFormScreen>
         }
       }
 
+      // Upload images if any
+      List<String> imageUrls = [];
+      if (_selectedImages.isNotEmpty) {
+        final uploadedFileIds = await AppwriteService.uploadMultipleProductImages(_selectedImages);
+        imageUrls = await AppwriteService.getProductImageUrls(uploadedFileIds);
+      }
+
       // Create product
       final product = Product(
         id: '', // Will be set by Appwrite
@@ -129,7 +181,7 @@ class _ProductFormScreenState extends State<ProductFormScreen>
             ? double.tryParse(_salePriceController.text)
             : null,
         category: _selectedCategory,
-        images: _selectedImages, // In real app, upload images first
+        images: imageUrls, // Use actual uploaded image URLs
         sellerId: user.$id,
         shopId: shop.id,
         stock: int.tryParse(_stockController.text) ?? 0,
@@ -153,7 +205,8 @@ class _ProductFormScreenState extends State<ProductFormScreen>
             backgroundColor: Color(0xFF10B981),
           ),
         );
-        Navigator.pop(context);
+        // Navigate to dashboard using Go Router
+        GoRouter.of(context).go('/dashboard');
       }
     } catch (e) {
       if (mounted) {
@@ -205,46 +258,72 @@ class _ProductFormScreenState extends State<ProductFormScreen>
 
     return Scaffold(
       backgroundColor: Colors.black,
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(isDesktop),
-            _buildProgressIndicator(isDesktop),
-            Expanded(
-              child: PageView(
-                controller: _pageController,
-                onPageChanged: (index) {
-                  setState(() {
-                    _currentStep = index;
-                  });
-                },
+      body: Stack(
+        children: [
+          SafeArea(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: isDesktop ? 24 : 16, vertical: isDesktop ? 16 : 8),
+              child: Column(
                 children: [
-                  _buildBasicInfoStep(isDesktop),
-                  _buildPricingStep(isDesktop),
-                  _buildMediaStep(isDesktop),
-                  _buildInventoryStep(isDesktop),
-                  _buildAttributesStep(isDesktop),
+                  _buildHeader(isDesktop),
+                  _buildProgressIndicator(isDesktop),
+                  Expanded(
+                    child: PageView(
+                      controller: _pageController,
+                      onPageChanged: (index) {
+                        setState(() {
+                          _currentStep = index;
+                        });
+                      },
+                      children: [
+                        _buildBasicInfoStep(isDesktop),
+                        _buildPricingStep(isDesktop),
+                        _buildMediaStep(isDesktop),
+                        _buildInventoryStep(isDesktop),
+                      ],
+                    ),
+                  ),
+                  _buildBottomNavigation(isDesktop),
                 ],
               ),
             ),
-            _buildBottomNavigation(isDesktop),
-          ],
-        ),
+          ),
+          if (_isSubmitting)
+            Container(
+              color: Colors.black.withOpacity(0.8),
+              child: const Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFD366E)),
+                    ),
+                    SizedBox(height: 16),
+                    Text(
+                      'Publishing your product...',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
 
   Widget _buildHeader(bool isDesktop) {
     return Container(
-      padding: EdgeInsets.symmetric(
-        vertical: isDesktop ? 20 : 16,
-        horizontal: isDesktop ? 24 : 16,
-      ),
+      padding: EdgeInsets.symmetric(vertical: isDesktop ? 20 : 16),
       decoration: BoxDecoration(
         color: Colors.black,
         border: Border.all(
-          color: const Color(0xFFFD366E),
-          width: 1.5,
+          color: const Color(0xFFFD366E).withOpacity(0.3),
+          width: 1,
         ),
         borderRadius: BorderRadius.circular(12),
       ),
@@ -288,7 +367,7 @@ class _ProductFormScreenState extends State<ProductFormScreen>
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
-              'Step ${_currentStep + 1} of 5',
+              'Step ${_currentStep + 1} of 4',
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 12,
@@ -303,15 +382,15 @@ class _ProductFormScreenState extends State<ProductFormScreen>
 
   Widget _buildProgressIndicator(bool isDesktop) {
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: isDesktop ? 24 : 16, vertical: 12),
+      margin: EdgeInsets.symmetric(vertical: 12),
       child: Row(
-        children: List.generate(5, (index) {
+        children: List.generate(4, (index) {
           bool isActive = index <= _currentStep;
 
           return Expanded(
             child: Container(
               height: 3,
-              margin: EdgeInsets.only(right: index < 4 ? 6 : 0),
+              margin: EdgeInsets.only(right: index < 3 ? 6 : 0),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(2),
                 color: isActive ? const Color(0xFFFD366E) : Colors.white.withOpacity(0.2),
@@ -325,7 +404,7 @@ class _ProductFormScreenState extends State<ProductFormScreen>
 
   Widget _buildBottomNavigation(bool isDesktop) {
     return Container(
-      padding: EdgeInsets.all(isDesktop ? 24 : 16),
+      padding: EdgeInsets.symmetric(vertical: isDesktop ? 24 : 16),
       decoration: BoxDecoration(
         color: Colors.black,
         border: Border(
@@ -367,12 +446,12 @@ class _ProductFormScreenState extends State<ProductFormScreen>
                 borderRadius: BorderRadius.circular(8),
               ),
               child: ElevatedButton.icon(
-                icon: Icon(_currentStep == 4 ? Icons.rocket_launch : Icons.arrow_forward),
-                label: Text(_currentStep == 4 ? 'Publish Product' : 'Continue'),
+                icon: Icon(_currentStep == 3 ? Icons.rocket_launch : Icons.arrow_forward),
+                label: Text(_currentStep == 3 ? 'Publish Product' : 'Continue'),
                 onPressed: _isSubmitting
                     ? null
                     : () {
-                        if (_currentStep == 4) {
+                        if (_currentStep == 3) {
                           _submitProduct();
                         } else {
                           _pageController.nextPage(
@@ -400,7 +479,7 @@ class _ProductFormScreenState extends State<ProductFormScreen>
 
   Widget _buildBasicInfoStep(bool isDesktop) {
     return SingleChildScrollView(
-      padding: EdgeInsets.all(isDesktop ? 24 : 16),
+      padding: EdgeInsets.symmetric(vertical: isDesktop ? 24 : 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -509,7 +588,7 @@ class _ProductFormScreenState extends State<ProductFormScreen>
             ],
           ),
 
-          const SizedBox(height: 60),
+          SizedBox(height: isDesktop ? 60 : 40),
         ],
       ),
     );
@@ -517,7 +596,7 @@ class _ProductFormScreenState extends State<ProductFormScreen>
 
   Widget _buildPricingStep(bool isDesktop) {
     return SingleChildScrollView(
-      padding: EdgeInsets.all(isDesktop ? 24 : 16),
+      padding: EdgeInsets.symmetric(vertical: isDesktop ? 24 : 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -600,7 +679,7 @@ class _ProductFormScreenState extends State<ProductFormScreen>
             ],
           ),
 
-          const SizedBox(height: 60),
+          SizedBox(height: isDesktop ? 60 : 40),
         ],
       ),
     );
@@ -608,7 +687,7 @@ class _ProductFormScreenState extends State<ProductFormScreen>
 
   Widget _buildMediaStep(bool isDesktop) {
     return SingleChildScrollView(
-      padding: EdgeInsets.all(isDesktop ? 24 : 16),
+      padding: EdgeInsets.symmetric(vertical: isDesktop ? 24 : 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -636,7 +715,7 @@ class _ProductFormScreenState extends State<ProductFormScreen>
             children: [
               // Image Upload Area
               Container(
-                height: 200,
+                height: isDesktop ? 200 : 150,
                 decoration: BoxDecoration(
                   color: Colors.black,
                   borderRadius: BorderRadius.circular(12),
@@ -650,12 +729,9 @@ class _ProductFormScreenState extends State<ProductFormScreen>
                   child: InkWell(
                     borderRadius: BorderRadius.circular(12),
                     onTap: () {
-                      // Handle image upload
+                      // Pick images using file picker
+                      _pickImages();
                       HapticFeedback.lightImpact();
-                      // Simulate adding an image
-                      setState(() {
-                        _selectedImages.add('image_${_selectedImages.length + 1}.jpg');
-                      });
                     },
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -718,22 +794,34 @@ class _ProductFormScreenState extends State<ProductFormScreen>
                         ),
                         child: Stack(
                           children: [
-                            Center(
-                              child: Icon(
-                                Icons.image,
-                                color: Colors.white.withOpacity(0.5),
-                                size: 32,
-                              ),
-                            ),
+                            _selectedImages[index].bytes != null
+                              ? Image.memory(
+                                  _selectedImages[index].bytes!,
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Center(
+                                      child: Icon(
+                                        Icons.image,
+                                        color: Colors.white.withOpacity(0.5),
+                                        size: 32,
+                                      ),
+                                    );
+                                  },
+                                )
+                              : Center(
+                                  child: Icon(
+                                    Icons.image,
+                                    color: Colors.white.withOpacity(0.5),
+                                    size: 32,
+                                  ),
+                                ),
                             Positioned(
                               top: 4,
                               right: 4,
                               child: GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    _selectedImages.removeAt(index);
-                                  });
-                                },
+                                onTap: () => _removeImage(index),
                                 child: Container(
                                   padding: const EdgeInsets.all(4),
                                   decoration: const BoxDecoration(
@@ -758,28 +846,6 @@ class _ProductFormScreenState extends State<ProductFormScreen>
 
               const SizedBox(height: 16),
 
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildUploadOption(
-                      title: 'Gallery',
-                      subtitle: 'Choose from device',
-                      icon: Icons.photo,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildUploadOption(
-                      title: 'Camera',
-                      subtitle: 'Take new photo',
-                      icon: Icons.camera_alt,
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 16),
-
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -800,7 +866,7 @@ class _ProductFormScreenState extends State<ProductFormScreen>
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'Upload high-quality images (at least 1000x1000px) for better visibility',
+                        'Upload high-quality images (at least 1000x1000px) for better visibility. You can select multiple images at once.',
                         style: TextStyle(
                           color: Colors.white.withOpacity(0.7),
                           fontSize: 12,
@@ -813,7 +879,7 @@ class _ProductFormScreenState extends State<ProductFormScreen>
             ],
           ),
 
-          const SizedBox(height: 60),
+          SizedBox(height: isDesktop ? 60 : 40),
         ],
       ),
     );
@@ -821,7 +887,7 @@ class _ProductFormScreenState extends State<ProductFormScreen>
 
   Widget _buildInventoryStep(bool isDesktop) {
     return SingleChildScrollView(
-      padding: EdgeInsets.all(isDesktop ? 24 : 16),
+      padding: EdgeInsets.symmetric(vertical: isDesktop ? 24 : 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -951,260 +1017,7 @@ class _ProductFormScreenState extends State<ProductFormScreen>
             ],
           ),
 
-          const SizedBox(height: 60),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAttributesStep(bool isDesktop) {
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(isDesktop ? 24 : 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Attributes & Tags',
-            style: TextStyle(
-              fontSize: isDesktop ? 20 : 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            'Add product variations and tags',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.white.withOpacity(0.7),
-            ),
-          ),
-          const SizedBox(height: 24),
-
-          _buildSectionCard(
-            title: 'Product Tags',
-            icon: Icons.tag,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.black,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: const Color(0xFFFD366E).withOpacity(0.3),
-                    width: 1,
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Add Tags',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    TextField(
-                      style: const TextStyle(color: Colors.white),
-                      decoration: InputDecoration(
-                        hintText: 'Type and press Enter to add tags',
-                        hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: Color(0xFFFD366E)),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      ),
-                      onSubmitted: (value) {
-                        if (value.isNotEmpty && !_tags.contains(value)) {
-                          setState(() {
-                            _tags.add(value);
-                          });
-                        }
-                      },
-                    ),
-                    if (_tags.isNotEmpty) ...[
-                      const SizedBox(height: 12),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: _tags.map((tag) => Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFD366E).withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: const Color(0xFFFD366E).withOpacity(0.3)),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                tag,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                              GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    _tags.remove(tag);
-                                  });
-                                },
-                                child: const Icon(
-                                  Icons.close,
-                                  color: Colors.white,
-                                  size: 14,
-                                ),
-                              ),
-                            ],
-                          ),
-                        )).toList(),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 20),
-
-          // Product Attributes
-          _buildSectionCard(
-            title: 'Product Attributes',
-            icon: Icons.settings,
-            children: [
-              // Add Attribute Button
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.black,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: const Color(0xFFFD366E).withOpacity(0.3),
-                    width: 1,
-                  ),
-                ),
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(10),
-                    onTap: () {
-                      // Add new attribute
-                      setState(() {
-                        _attributes.add({
-                          'name': '',
-                          'values': <String>[],
-                          'visible': true,
-                          'variation': false,
-                        });
-                      });
-                    },
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFFFD366E), Color(0xFF7C3AED)],
-                            ),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Icon(
-                            Icons.add,
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        const Text(
-                          'Add New Attribute',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-
-              // Existing Attributes
-              if (_attributes.isNotEmpty) ...[
-                const SizedBox(height: 16),
-                ..._attributes.map((attribute) => Container(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.black,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: const Color(0xFFFD366E).withOpacity(0.3),
-                      width: 1,
-                    ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              attribute['name']?.isEmpty ?? true ? 'New Attribute' : attribute['name'],
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          IconButton(
-                            onPressed: () {
-                              setState(() {
-                                _attributes.remove(attribute);
-                              });
-                            },
-                            icon: const Icon(
-                              Icons.delete,
-                              color: Colors.red,
-                              size: 20,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Configure attribute options and settings',
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.6),
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                )),
-              ],
-            ],
-          ),
-
-          const SizedBox(height: 60),
+          SizedBox(height: isDesktop ? 60 : 40),
         ],
       ),
     );
@@ -1331,64 +1144,14 @@ class _ProductFormScreenState extends State<ProductFormScreen>
     );
   }
 
-  Widget _buildUploadOption({
-    required String title,
-    required String subtitle,
-    required IconData icon,
-  }) {
-    return GestureDetector(
-      onTap: () {
-        // Handle upload option
-        HapticFeedback.lightImpact();
-        // Simulate adding an image
-        setState(() {
-          _selectedImages.add('image_${_selectedImages.length + 1}.jpg');
-        });
-      },
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.black,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: const Color(0xFFFD366E).withOpacity(0.3),
-            width: 1,
-          ),
-        ),
-        child: Column(
-          children: [
-            Icon(icon, color: const Color(0xFFFD366E), size: 20),
-            const SizedBox(height: 8),
-            Text(
-              title,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-                fontSize: 13,
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              subtitle,
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.6),
-                fontSize: 11,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildSectionCard({
     required String title,
     required IconData icon,
     required List<Widget> children,
   }) {
+    final isDesktop = MediaQuery.of(context).size.width > 900;
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(isDesktop ? 20 : 16),
       decoration: BoxDecoration(
         color: Colors.black,
         borderRadius: BorderRadius.circular(12),
@@ -1424,4 +1187,4 @@ class _ProductFormScreenState extends State<ProductFormScreen>
       ),
     );
   }
-    }
+}
