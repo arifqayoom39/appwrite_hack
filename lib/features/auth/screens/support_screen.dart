@@ -4,14 +4,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../providers/auth_provider.dart';
 
-class AboutUsScreen extends ConsumerStatefulWidget {
-  const AboutUsScreen({Key? key}) : super(key: key);
+class SupportScreen extends ConsumerStatefulWidget {
+  const SupportScreen({Key? key}) : super(key: key);
 
   @override
-  ConsumerState<AboutUsScreen> createState() => _AboutUsScreenState();
+  ConsumerState<SupportScreen> createState() => _SupportScreenState();
 }
 
-class _AboutUsScreenState extends ConsumerState<AboutUsScreen>
+class _SupportScreenState extends ConsumerState<SupportScreen>
     with TickerProviderStateMixin {
   // Appwrite theme colors
   static const Color appwritePink = Color(0xFFFD366E);
@@ -21,8 +21,8 @@ class _AboutUsScreenState extends ConsumerState<AboutUsScreen>
 
   late AnimationController _heroAnimationController;
   late Animation<double> _heroFadeAnimation;
-  late AnimationController _aboutAnimationController;
-  late Animation<double> _aboutSlideAnimation;
+  late AnimationController _supportAnimationController;
+  late Animation<double> _supportSlideAnimation;
 
   final ScrollController _scrollController = ScrollController();
   bool _isScrolled = false;
@@ -35,7 +35,7 @@ class _AboutUsScreenState extends ConsumerState<AboutUsScreen>
       duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
-    _aboutAnimationController = AnimationController(
+    _supportAnimationController = AnimationController(
       duration: const Duration(milliseconds: 1000),
       vsync: this,
     );
@@ -43,13 +43,13 @@ class _AboutUsScreenState extends ConsumerState<AboutUsScreen>
     _heroFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _heroAnimationController, curve: Curves.easeOut),
     );
-    _aboutSlideAnimation = Tween<double>(begin: 50.0, end: 0.0).animate(
-      CurvedAnimation(parent: _aboutAnimationController, curve: Curves.easeOut),
+    _supportSlideAnimation = Tween<double>(begin: 50.0, end: 0.0).animate(
+      CurvedAnimation(parent: _supportAnimationController, curve: Curves.easeOut),
     );
 
     _heroAnimationController.forward();
     Future.delayed(const Duration(milliseconds: 300), () {
-      _aboutAnimationController.forward();
+      _supportAnimationController.forward();
     });
 
     _scrollController.addListener(_onScroll);
@@ -58,7 +58,7 @@ class _AboutUsScreenState extends ConsumerState<AboutUsScreen>
   @override
   void dispose() {
     _heroAnimationController.dispose();
-    _aboutAnimationController.dispose();
+    _supportAnimationController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -95,11 +95,10 @@ class _AboutUsScreenState extends ConsumerState<AboutUsScreen>
           child: Column(
             children: [
               _buildHeroSection(),
-              _buildStorySection(),
-              _buildMissionSection(),
-              _buildTeamSection(),
-              _buildValuesSection(),
-              _buildCTASection(),
+              _buildSupportOptions(),
+              _buildHelpCenter(),
+              _buildContactSection(),
+              _buildStatusSection(),
               _buildFooter(),
             ],
           ),
@@ -255,13 +254,13 @@ class _AboutUsScreenState extends ConsumerState<AboutUsScreen>
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
-                    Icons.business,
+                    Icons.support_agent,
                     color: appwritePink,
                     size: 16,
                   ),
                   const SizedBox(width: 8),
                   const Text(
-                    'About StorePe',
+                    '24/7 Support',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 14,
@@ -275,7 +274,7 @@ class _AboutUsScreenState extends ConsumerState<AboutUsScreen>
 
             // Main heading
             Text(
-              'Empowering Entrepreneurs\nWorldwide',
+              'How Can We Help?',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: _isMobile ? 40 : 72,
@@ -291,7 +290,7 @@ class _AboutUsScreenState extends ConsumerState<AboutUsScreen>
             Container(
               constraints: const BoxConstraints(maxWidth: 600),
               child: Text(
-                'We believe everyone should have the tools to turn their ideas into successful online businesses. Our mission is to democratize ecommerce.',
+                'Get the help you need, when you need it. Our support team is here to ensure your success with StorePe.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: _isMobile ? 18 : 20,
@@ -306,236 +305,118 @@ class _AboutUsScreenState extends ConsumerState<AboutUsScreen>
     );
   }
 
-  Widget _buildStorySection() {
+  Widget _buildSupportOptions() {
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: _isMobile ? 20 : 80,
         vertical: _isMobile ? 60 : 100,
       ),
       child: AnimatedBuilder(
-        animation: _aboutSlideAnimation,
+        animation: _supportSlideAnimation,
         builder: (context, child) {
           return Transform.translate(
-            offset: Offset(0, _aboutSlideAnimation.value),
-            child: _isMobile
-                ? Column(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(
-                          color: appwriteDarkGray,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: appwriteBorder,
-                            width: 1,
-                          ),
-                        ),
-                        child: Column(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: appwritePink.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: const Icon(
-                                Icons.history,
-                                color: appwritePink,
-                                size: 32,
-                              ),
-                            ),
-                            const SizedBox(height: 24),
-                            const Text(
-                              'Our Story',
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'StorePe was born from the frustration of our founders with the complexity and high costs associated with traditional ecommerce platforms. We saw an opportunity to create a solution that combines cutting-edge technology with intuitive design.',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.white.withOpacity(0.8),
-                                height: 1.6,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  )
-                : Row(
-                    children: [
-                      Expanded(
-                        flex: 1,
-                        child: Container(
-                          padding: const EdgeInsets.all(48),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                      color: appwritePink.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: const Icon(
-                                      Icons.history,
-                                      color: appwritePink,
-                                      size: 24,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  const Text(
-                                    'Our Story',
-                                    style: TextStyle(
-                                      fontSize: 32,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 24),
-                              Text(
-                                'StorePe was born from the frustration of our founders with the complexity and high costs associated with traditional ecommerce platforms. We saw an opportunity to create a solution that combines cutting-edge technology with intuitive design, making it possible for small businesses, entrepreneurs, and creators to launch professional online stores in minutes.',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  color: Colors.white.withOpacity(0.9),
-                                  height: 1.6,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 60),
-                      Expanded(
-                        flex: 1,
-                        child: Container(
-                          height: 300,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [appwritePink.withOpacity(0.2), appwritePink.withOpacity(0.1)],
-                            ),
-                            borderRadius: BorderRadius.circular(24),
-                            border: Border.all(
-                              color: appwritePink.withOpacity(0.3),
-                              width: 2,
-                            ),
-                          ),
-                          child: const Center(
-                            child: Icon(
-                              Icons.timeline,
-                              color: appwritePink,
-                              size: 80,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+            offset: Offset(0, _supportSlideAnimation.value),
+            child: Column(
+              children: [
+                Text(
+                  'Support Options',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: _isMobile ? 32 : 48,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  constraints: const BoxConstraints(maxWidth: 600),
+                  child: Text(
+                    'Choose the support option that works best for you.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: _isMobile ? 16 : 18,
+                      color: Colors.white.withOpacity(0.7),
+                      height: 1.6,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 60),
+                _isMobile
+                    ? Column(
+                        children: [
+                          _buildSupportCard(
+                            icon: Icons.chat,
+                            title: 'Live Chat',
+                            description: 'Get instant help from our support team',
+                            availability: '24/7',
+                            responseTime: 'Instant',
+                          ),
+                          const SizedBox(height: 24),
+                          _buildSupportCard(
+                            icon: Icons.email,
+                            title: 'Email Support',
+                            description: 'Send us a detailed message about your issue',
+                            availability: '24/7',
+                            responseTime: '< 2 hours',
+                          ),
+                          const SizedBox(height: 24),
+                          _buildSupportCard(
+                            icon: Icons.phone,
+                            title: 'Phone Support',
+                            description: 'Speak directly with our experts',
+                            availability: 'Mon-Fri 9AM-6PM',
+                            responseTime: 'Immediate',
+                          ),
+                        ],
+                      )
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            child: _buildSupportCard(
+                              icon: Icons.chat,
+                              title: 'Live Chat',
+                              description: 'Get instant help from our support team',
+                              availability: '24/7',
+                              responseTime: 'Instant',
+                            ),
+                          ),
+                          const SizedBox(width: 24),
+                          Expanded(
+                            child: _buildSupportCard(
+                              icon: Icons.email,
+                              title: 'Email Support',
+                              description: 'Send us a detailed message about your issue',
+                              availability: '24/7',
+                              responseTime: '< 2 hours',
+                            ),
+                          ),
+                          const SizedBox(width: 24),
+                          Expanded(
+                            child: _buildSupportCard(
+                              icon: Icons.phone,
+                              title: 'Phone Support',
+                              description: 'Speak directly with our experts',
+                              availability: 'Mon-Fri 9AM-6PM',
+                              responseTime: 'Immediate',
+                            ),
+                          ),
+                        ],
+                      ),
+              ],
+            ),
           );
         },
       ),
     );
   }
 
-  Widget _buildMissionSection() {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: _isMobile ? 20 : 80,
-        vertical: _isMobile ? 60 : 100,
-      ),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Colors.transparent,
-            appwritePink.withOpacity(0.05),
-            Colors.transparent,
-          ],
-        ),
-      ),
-      child: Column(
-        children: [
-          Text(
-            'Our Mission',
-            style: TextStyle(
-              fontSize: _isMobile ? 32 : 48,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 60),
-          _isMobile
-              ? Column(
-                  children: [
-                    _buildMissionCard(
-                      icon: Icons.rocket_launch,
-                      title: 'Innovation First',
-                      description: 'We constantly push the boundaries of what\'s possible in ecommerce technology.',
-                    ),
-                    const SizedBox(height: 24),
-                    _buildMissionCard(
-                      icon: Icons.people,
-                      title: 'People Centered',
-                      description: 'Every decision we make puts our users and their success first.',
-                    ),
-                    const SizedBox(height: 24),
-                    _buildMissionCard(
-                      icon: Icons.public,
-                      title: 'Global Impact',
-                      description: 'We\'re helping entrepreneurs worldwide achieve their dreams.',
-                    ),
-                  ],
-                )
-              : Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: _buildMissionCard(
-                        icon: Icons.rocket_launch,
-                        title: 'Innovation First',
-                        description: 'We constantly push the boundaries of what\'s possible in ecommerce technology.',
-                      ),
-                    ),
-                    const SizedBox(width: 24),
-                    Expanded(
-                      child: _buildMissionCard(
-                        icon: Icons.people,
-                        title: 'People Centered',
-                        description: 'Every decision we make puts our users and their success first.',
-                      ),
-                    ),
-                    const SizedBox(width: 24),
-                    Expanded(
-                      child: _buildMissionCard(
-                        icon: Icons.public,
-                        title: 'Global Impact',
-                        description: 'We\'re helping entrepreneurs worldwide achieve their dreams.',
-                      ),
-                    ),
-                  ],
-                ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMissionCard({
+  Widget _buildSupportCard({
     required IconData icon,
     required String title,
     required String description,
+    required String availability,
+    required String responseTime,
   }) {
     return Container(
       padding: const EdgeInsets.all(32),
@@ -565,7 +446,7 @@ class _AboutUsScreenState extends ConsumerState<AboutUsScreen>
           Text(
             title,
             style: const TextStyle(
-              fontSize: 20,
+              fontSize: 24,
               fontWeight: FontWeight.bold,
               color: Colors.white,
             ),
@@ -581,97 +462,60 @@ class _AboutUsScreenState extends ConsumerState<AboutUsScreen>
             ),
             textAlign: TextAlign.center,
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTeamSection() {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: _isMobile ? 20 : 80,
-        vertical: _isMobile ? 60 : 100,
-      ),
-      child: Column(
-        children: [
+          const SizedBox(height: 24),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: appwritePink.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              availability,
+              style: TextStyle(
+                fontSize: 12,
+                color: appwritePink,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
           Text(
-            'Meet the Team',
+            'Response: $responseTime',
             style: TextStyle(
-              fontSize: _isMobile ? 32 : 48,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
+              fontSize: 14,
+              color: Colors.white.withOpacity(0.7),
             ),
-            textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 60),
-          Center(
-            child: Column(
-              children: [
-                Container(
-                  width: _isMobile ? 120 : 150,
-                  height: _isMobile ? 120 : 150,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: appwritePink,
-                      width: 4,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: appwritePink.withOpacity(0.3),
-                        blurRadius: 30,
-                        offset: const Offset(0, 15),
-                      ),
-                    ],
-                  ),
-                  child: ClipOval(
-                    child: Image.asset(
-                      'assets/developer.jpeg',
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          color: appwritePink.withOpacity(0.2),
-                          child: const Icon(
-                            Icons.person,
-                            color: Colors.white,
-                            size: 60,
-                          ),
-                        );
-                      },
-                    ),
-                  ),
+          const SizedBox(height: 24),
+          Container(
+            width: double.infinity,
+            height: 48,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [appwritePink, Color(0xFFE91E63)],
+              ),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: ElevatedButton(
+              onPressed: () {
+                // Handle support action
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.transparent,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                const SizedBox(height: 24),
-                const Text(
-                  'Arif Qayoom',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
+              ),
+              child: Text(
+                title == 'Live Chat' ? 'Start Chat' :
+                title == 'Email Support' ? 'Send Email' : 'Call Now',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
                 ),
-                const SizedBox(height: 12),
-                Text(
-                  'Founder & Lead Developer',
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: Colors.white.withOpacity(0.8),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Container(
-                  constraints: BoxConstraints(maxWidth: _isMobile ? double.infinity : 600),
-                  child: Text(
-                    'Passionate about creating innovative solutions and empowering entrepreneurs through technology. Built StorePe to democratize ecommerce and make online business creation accessible to everyone.',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.white.withOpacity(0.9),
-                      height: 1.6,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ],
@@ -679,7 +523,7 @@ class _AboutUsScreenState extends ConsumerState<AboutUsScreen>
     );
   }
 
-  Widget _buildValuesSection() {
+  Widget _buildHelpCenter() {
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: _isMobile ? 20 : 80,
@@ -699,7 +543,7 @@ class _AboutUsScreenState extends ConsumerState<AboutUsScreen>
       child: Column(
         children: [
           Text(
-            'Our Values',
+            'Help Center',
             style: TextStyle(
               fontSize: _isMobile ? 32 : 48,
               fontWeight: FontWeight.bold,
@@ -711,58 +555,56 @@ class _AboutUsScreenState extends ConsumerState<AboutUsScreen>
           _isMobile
               ? Column(
                   children: [
-                    _buildValueItem(
-                      number: '01',
-                      title: 'Innovation',
-                      description: 'We embrace cutting-edge technology to solve real problems.',
+                    _buildHelpCategory(
+                      icon: Icons.store,
+                      title: 'Getting Started',
+                      description: 'Learn the basics of setting up your store',
+                      articles: ['Create your first store', 'Add products', 'Customize design'],
                     ),
-                    const SizedBox(height: 32),
-                    _buildValueItem(
-                      number: '02',
-                      title: 'Simplicity',
-                      description: 'We believe complex technology should be simple to use.',
+                    const SizedBox(height: 24),
+                    _buildHelpCategory(
+                      icon: Icons.payment,
+                      title: 'Payments & Billing',
+                      description: 'Everything about payments and subscriptions',
+                      articles: ['Payment methods', 'Billing FAQ', 'Refunds'],
                     ),
-                    const SizedBox(height: 32),
-                    _buildValueItem(
-                      number: '03',
-                      title: 'Empowerment',
-                      description: 'We give entrepreneurs the tools they need to succeed.',
-                    ),
-                    const SizedBox(height: 32),
-                    _buildValueItem(
-                      number: '04',
-                      title: 'Community',
-                      description: 'We build together and support each other\'s success.',
+                    const SizedBox(height: 24),
+                    _buildHelpCategory(
+                      icon: Icons.analytics,
+                      title: 'Analytics & Reports',
+                      description: 'Understand your store performance',
+                      articles: ['View analytics', 'Generate reports', 'Track sales'],
                     ),
                   ],
                 )
-              : GridView.count(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 32,
-                  crossAxisSpacing: 32,
-                  childAspectRatio: 1.5,
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _buildValueItem(
-                      number: '01',
-                      title: 'Innovation',
-                      description: 'We embrace cutting-edge technology to solve real problems.',
+                    Expanded(
+                      child: _buildHelpCategory(
+                        icon: Icons.store,
+                        title: 'Getting Started',
+                        description: 'Learn the basics of setting up your store',
+                        articles: ['Create your first store', 'Add products', 'Customize design'],
+                      ),
                     ),
-                    _buildValueItem(
-                      number: '02',
-                      title: 'Simplicity',
-                      description: 'We believe complex technology should be simple to use.',
+                    const SizedBox(width: 24),
+                    Expanded(
+                      child: _buildHelpCategory(
+                        icon: Icons.payment,
+                        title: 'Payments & Billing',
+                        description: 'Everything about payments and subscriptions',
+                        articles: ['Payment methods', 'Billing FAQ', 'Refunds'],
+                      ),
                     ),
-                    _buildValueItem(
-                      number: '03',
-                      title: 'Empowerment',
-                      description: 'We give entrepreneurs the tools they need to succeed.',
-                    ),
-                    _buildValueItem(
-                      number: '04',
-                      title: 'Community',
-                      description: 'We build together and support each other\'s success.',
+                    const SizedBox(width: 24),
+                    Expanded(
+                      child: _buildHelpCategory(
+                        icon: Icons.analytics,
+                        title: 'Analytics & Reports',
+                        description: 'Understand your store performance',
+                        articles: ['View analytics', 'Generate reports', 'Track sales'],
+                      ),
                     ),
                   ],
                 ),
@@ -771,10 +613,11 @@ class _AboutUsScreenState extends ConsumerState<AboutUsScreen>
     );
   }
 
-  Widget _buildValueItem({
-    required String number,
+  Widget _buildHelpCategory({
+    required IconData icon,
     required String title,
     required String description,
+    required List<String> articles,
   }) {
     return Container(
       padding: const EdgeInsets.all(24),
@@ -789,12 +632,16 @@ class _AboutUsScreenState extends ConsumerState<AboutUsScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            number,
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: appwritePink.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              icon,
               color: appwritePink,
+              size: 24,
             ),
           ),
           const SizedBox(height: 16),
@@ -810,9 +657,45 @@ class _AboutUsScreenState extends ConsumerState<AboutUsScreen>
           Text(
             description,
             style: TextStyle(
-              fontSize: 16,
+              fontSize: 14,
               color: Colors.white.withOpacity(0.8),
               height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Column(
+            children: articles.map((article) => Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.arrow_right,
+                    color: appwritePink,
+                    size: 16,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      article,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.white.withOpacity(0.9),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            )).toList(),
+          ),
+          const SizedBox(height: 16),
+          TextButton(
+            onPressed: () {},
+            child: Text(
+              'View all articles',
+              style: TextStyle(
+                color: appwritePink,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         ],
@@ -820,94 +703,247 @@ class _AboutUsScreenState extends ConsumerState<AboutUsScreen>
     );
   }
 
-  Widget _buildCTASection() {
+  Widget _buildContactSection() {
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: _isMobile ? 20 : 80,
-        vertical: _isMobile ? 80 : 120,
+        vertical: _isMobile ? 60 : 100,
       ),
-      child: Container(
-        padding: EdgeInsets.all(_isMobile ? 40 : 80),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              appwritePink.withOpacity(0.1),
-              appwritePink.withOpacity(0.05),
-            ],
+      child: Column(
+        children: [
+          Text(
+            'Contact Information',
+            style: TextStyle(
+              fontSize: _isMobile ? 32 : 48,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+            textAlign: TextAlign.center,
           ),
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(
-            color: appwritePink.withOpacity(0.2),
-            width: 1,
-          ),
+          const SizedBox(height: 60),
+          _isMobile
+              ? Column(
+                  children: [
+                    _buildContactItem(
+                      icon: Icons.email,
+                      title: 'Email',
+                      value: 'support@storepe.com',
+                      description: 'Send us an email anytime',
+                    ),
+                    const SizedBox(height: 24),
+                    _buildContactItem(
+                      icon: Icons.phone,
+                      title: 'Phone',
+                      value: '+1 (555) 123-4567',
+                      description: 'Mon-Fri 9AM-6PM EST',
+                    ),
+                    const SizedBox(height: 24),
+                    _buildContactItem(
+                      icon: Icons.chat,
+                      title: 'Live Chat',
+                      value: 'Available 24/7',
+                      description: 'Get instant help',
+                    ),
+                  ],
+                )
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: _buildContactItem(
+                        icon: Icons.email,
+                        title: 'Email',
+                        value: 'support@storepe.com',
+                        description: 'Send us an email anytime',
+                      ),
+                    ),
+                    const SizedBox(width: 24),
+                    Expanded(
+                      child: _buildContactItem(
+                        icon: Icons.phone,
+                        title: 'Phone',
+                        value: '+1 (555) 123-4567',
+                        description: 'Mon-Fri 9AM-6PM EST',
+                      ),
+                    ),
+                    const SizedBox(width: 24),
+                    Expanded(
+                      child: _buildContactItem(
+                        icon: Icons.chat,
+                        title: 'Live Chat',
+                        value: 'Available 24/7',
+                        description: 'Get instant help',
+                      ),
+                    ),
+                  ],
+                ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildContactItem({
+    required IconData icon,
+    required String title,
+    required String value,
+    required String description,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: appwriteDarkGray,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: appwriteBorder,
+          width: 1,
         ),
-        child: Column(
-          children: [
-            Text(
-              'Join Our Mission',
-              style: TextStyle(
-                fontSize: _isMobile ? 32 : 48,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-              textAlign: TextAlign.center,
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: appwritePink.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
             ),
-            const SizedBox(height: 16),
-            Container(
-              constraints: const BoxConstraints(maxWidth: 600),
-              child: Text(
-                'Be part of the revolution in ecommerce. Start building your dream online store today.',
-                style: TextStyle(
-                  fontSize: _isMobile ? 16 : 18,
-                  color: Colors.white.withOpacity(0.8),
-                  height: 1.6,
-                ),
-                textAlign: TextAlign.center,
-              ),
+            child: Icon(
+              icon,
+              color: appwritePink,
+              size: 32,
             ),
-            const SizedBox(height: 40),
-            Container(
-              height: 56,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [appwritePink, Color(0xFFE91E63)],
-                ),
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: appwritePink.withOpacity(0.4),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-              ),
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  context.go('/signup');
-                },
-                icon: const Icon(Icons.rocket_launch, size: 20),
-                label: const Text(
-                  'Get Started Today',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.transparent,
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  padding: EdgeInsets.symmetric(horizontal: _isMobile ? 20 : 40),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
             ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 16,
+              color: appwritePink,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            description,
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.white.withOpacity(0.7),
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusSection() {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: _isMobile ? 20 : 80,
+        vertical: _isMobile ? 60 : 100,
+      ),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Colors.transparent,
+            appwritePink.withOpacity(0.05),
+            Colors.transparent,
           ],
         ),
+      ),
+      child: Column(
+        children: [
+          Text(
+            'System Status',
+            style: TextStyle(
+              fontSize: _isMobile ? 32 : 48,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          Container(
+            constraints: const BoxConstraints(maxWidth: 600),
+            child: Text(
+              'Check the current status of our services and systems.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: _isMobile ? 16 : 18,
+                color: Colors.white.withOpacity(0.7),
+                height: 1.6,
+              ),
+            ),
+          ),
+          const SizedBox(height: 60),
+          Container(
+            padding: const EdgeInsets.all(32),
+            decoration: BoxDecoration(
+              color: appwriteDarkGray,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: appwriteBorder,
+                width: 1,
+              ),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 12,
+                      height: 12,
+                      decoration: BoxDecoration(
+                        color: Colors.green,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    const Text(
+                      'All Systems Operational',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  'Last updated: September 7, 2025 at 10:30 AM EST',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.white.withOpacity(0.7),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                TextButton(
+                  onPressed: () {},
+                  child: Text(
+                    'View detailed status page',
+                    style: TextStyle(
+                      color: appwritePink,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

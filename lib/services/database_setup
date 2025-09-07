@@ -1,0 +1,349 @@
+import 'package:appwrite/appwrite.dart';
+
+class DatabaseSetup {
+  static const String projectId = '68bbbcb6000730529db2';
+  static const String endpoint = 'https://fra.cloud.appwrite.io/v1';
+  static const String databaseId = '68bbbd4e0025e2dd2268';
+
+  static Future<void> setupCollections() async {
+    final client = Client()
+        .setEndpoint(endpoint)
+        .setProject(projectId);
+
+    final databases = Databases(client);
+
+    try {
+      // Create users collection
+      await databases.createCollection(
+        databaseId: databaseId,
+        collectionId: 'users',
+        name: 'Users',
+        permissions: [
+          Permission.read(Role.any()),
+          Permission.write(Role.any()),
+        ],
+      );
+
+      // Add user attributes
+      await databases.createStringAttribute(
+        databaseId: databaseId,
+        collectionId: 'users',
+        key: 'email',
+        size: 255,
+        required: true,
+      );
+
+      await databases.createStringAttribute(
+        databaseId: databaseId,
+        collectionId: 'users',
+        key: 'name',
+        size: 255,
+        required: true,
+      );
+
+      await databases.createBooleanAttribute(
+        databaseId: databaseId,
+        collectionId: 'users',
+        key: 'isSeller',
+        required: false,
+        default: false,
+      );
+
+      await databases.createDatetimeAttribute(
+        databaseId: databaseId,
+        collectionId: 'users',
+        key: 'createdAt',
+        required: true,
+      );
+
+      // Create shops collection
+      await databases.createCollection(
+        databaseId: databaseId,
+        collectionId: 'shops',
+        name: 'Shops',
+        permissions: [
+          Permission.read(Role.any()),
+          Permission.write(Role.any()),
+        ],
+      );
+
+      // Add shop attributes
+      await databases.createStringAttribute(
+        databaseId: databaseId,
+        collectionId: 'shops',
+        key: 'name',
+        size: 255,
+        required: true,
+      );
+
+      await databases.createStringAttribute(
+        databaseId: databaseId,
+        collectionId: 'shops',
+        key: 'slug',
+        size: 100,
+        required: true,
+      );
+
+      await databases.createStringAttribute(
+        databaseId: databaseId,
+        collectionId: 'shops',
+        key: 'description',
+        size: 1000,
+        required: false,
+      );
+
+      await databases.createStringAttribute(
+        databaseId: databaseId,
+        collectionId: 'shops',
+        key: 'email',
+        size: 255,
+        required: true,
+      );
+
+      await databases.createStringAttribute(
+        databaseId: databaseId,
+        collectionId: 'shops',
+        key: 'phone',
+        size: 20,
+        required: false,
+      );
+
+      await databases.createStringAttribute(
+        databaseId: databaseId,
+        collectionId: 'shops',
+        key: 'sellerId',
+        size: 50,
+        required: true,
+      );
+
+      await databases.createStringAttribute(
+        databaseId: databaseId,
+        collectionId: 'shops',
+        key: 'theme',
+        size: 50,
+        required: false,
+        default: 'Midnight Pro',
+      );
+
+      await databases.createBooleanAttribute(
+        databaseId: databaseId,
+        collectionId: 'shops',
+        key: 'isActive',
+        required: false,
+        default: true,
+      );
+
+      await databases.createDatetimeAttribute(
+        databaseId: databaseId,
+        collectionId: 'shops',
+        key: 'createdAt',
+        required: true,
+      );
+
+      // Create products collection
+      await databases.createCollection(
+        databaseId: databaseId,
+        collectionId: 'products',
+        name: 'Products',
+        permissions: [
+          Permission.read(Role.any()),
+          Permission.write(Role.any()),
+        ],
+      );
+
+      // Add product attributes
+      await databases.createStringAttribute(
+        databaseId: databaseId,
+        collectionId: 'products',
+        key: 'name',
+        size: 255,
+        required: true,
+      );
+
+      await databases.createStringAttribute(
+        databaseId: databaseId,
+        collectionId: 'products',
+        key: 'description',
+        size: 1000,
+        required: false,
+      );
+
+      await databases.createNumberAttribute(
+        databaseId: databaseId,
+        collectionId: 'products',
+        key: 'price',
+        required: true,
+        min: 0,
+      );
+
+      await databases.createNumberAttribute(
+        databaseId: databaseId,
+        collectionId: 'products',
+        key: 'salePrice',
+        required: false,
+        min: 0,
+      );
+
+      await databases.createStringAttribute(
+        databaseId: databaseId,
+        collectionId: 'products',
+        key: 'category',
+        size: 100,
+        required: true,
+      );
+
+      await databases.createStringAttribute(
+        databaseId: databaseId,
+        collectionId: 'products',
+        key: 'images',
+        size: 1000,
+        required: false,
+        array: true,
+      );
+
+      await databases.createStringAttribute(
+        databaseId: databaseId,
+        collectionId: 'products',
+        key: 'sellerId',
+        size: 50,
+        required: true,
+      );
+
+      await databases.createStringAttribute(
+        databaseId: databaseId,
+        collectionId: 'products',
+        key: 'shopId',
+        size: 50,
+        required: true,
+      );
+
+      await databases.createIntegerAttribute(
+        databaseId: databaseId,
+        collectionId: 'products',
+        key: 'stock',
+        required: false,
+        min: 0,
+        default: 0,
+      );
+
+      await databases.createBooleanAttribute(
+        databaseId: databaseId,
+        collectionId: 'products',
+        key: 'isActive',
+        required: false,
+        default: true,
+      );
+
+      await databases.createDatetimeAttribute(
+        databaseId: databaseId,
+        collectionId: 'products',
+        key: 'createdAt',
+        required: true,
+      );
+
+      // Create orders collection
+      await databases.createCollection(
+        databaseId: databaseId,
+        collectionId: 'orders',
+        name: 'Orders',
+        permissions: [
+          Permission.read(Role.any()),
+          Permission.write(Role.any()),
+        ],
+      );
+
+      // Add order attributes
+      await databases.createStringAttribute(
+        databaseId: databaseId,
+        collectionId: 'orders',
+        key: 'customerId',
+        size: 50,
+        required: true,
+      );
+
+      await databases.createStringAttribute(
+        databaseId: databaseId,
+        collectionId: 'orders',
+        key: 'sellerId',
+        size: 50,
+        required: true,
+      );
+
+      await databases.createStringAttribute(
+        databaseId: databaseId,
+        collectionId: 'orders',
+        key: 'shopId',
+        size: 50,
+        required: true,
+      );
+
+      await databases.createStringAttribute(
+        databaseId: databaseId,
+        collectionId: 'orders',
+        key: 'items',
+        size: 5000,
+        required: true,
+      );
+
+      await databases.createNumberAttribute(
+        databaseId: databaseId,
+        collectionId: 'orders',
+        key: 'total',
+        required: true,
+        min: 0,
+      );
+
+      await databases.createStringAttribute(
+        databaseId: databaseId,
+        collectionId: 'orders',
+        key: 'status',
+        size: 50,
+        required: false,
+        default: 'Pending',
+      );
+
+      await databases.createDatetimeAttribute(
+        databaseId: databaseId,
+        collectionId: 'orders',
+        key: 'createdAt',
+        required: true,
+      );
+
+      await databases.createStringAttribute(
+        databaseId: databaseId,
+        collectionId: 'orders',
+        key: 'customerName',
+        size: 255,
+        required: false,
+      );
+
+      await databases.createStringAttribute(
+        databaseId: databaseId,
+        collectionId: 'orders',
+        key: 'customerEmail',
+        size: 255,
+        required: false,
+      );
+
+      await databases.createStringAttribute(
+        databaseId: databaseId,
+        collectionId: 'orders',
+        key: 'customerPhone',
+        size: 20,
+        required: false,
+      );
+
+      await databases.createStringAttribute(
+        databaseId: databaseId,
+        collectionId: 'orders',
+        key: 'paymentMethod',
+        size: 100,
+        required: false,
+      );
+
+      print('Database setup completed successfully!');
+    } catch (e) {
+      print('Error setting up database: $e');
+    }
+  }
+}

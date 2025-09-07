@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../../services/appwrite_service.dart';
+import '../../../models/order_model.dart';
 
 class OrdersScreen extends StatefulWidget {
   const OrdersScreen({Key? key}) : super(key: key);
@@ -13,106 +15,15 @@ class _OrdersScreenState extends State<OrdersScreen>
   String _selectedFilter = 'All';
   late AnimationController _fadeController;
   late AnimationController _slideController;
-  late Animation<double> _fadeAnimation;
-  late Animation<Offset> _slideAnimation;
 
-  // Mock orders data with stunning visuals
-  final List<Map<String, dynamic>> _orders = [
-    {
-      'id': '#ORD-2025-001',
-      'customer': 'Sarah Johnson',
-      'email': 'sarah.j@email.com',
-      'phone': '+1 (555) 123-4567',
-      'status': 'Delivered',
-      'statusColor': const Color(0xFF10B981),
-      'total': '\$299.99',
-      'date': '2025-09-03',
-      'time': '14:30',
-      'items': [
-        {'name': 'Premium Wireless Headphones', 'quantity': 1, 'price': '\$299.99'},
-      ],
-      'shipping': 'Express Shipping',
-      'payment': 'Credit Card **** 4532',
-      'timeline': [
-        {'status': 'Order Placed', 'date': '2025-09-01', 'time': '10:15', 'completed': true},
-        {'status': 'Payment Confirmed', 'date': '2025-09-01', 'time': '10:16', 'completed': true},
-        {'status': 'Processing', 'date': '2025-09-01', 'time': '11:30', 'completed': true},
-        {'status': 'Shipped', 'date': '2025-09-02', 'time': '09:45', 'completed': true},
-        {'status': 'Delivered', 'date': '2025-09-03', 'time': '14:30', 'completed': true},
-      ]
-    },
-    {
-      'id': '#ORD-2025-002',
-      'customer': 'Mike Chen',
-      'email': 'mike.chen@email.com',
-      'phone': '+1 (555) 987-6543',
-      'status': 'Shipped',
-      'statusColor': const Color(0xFF3B82F6),
-      'total': '\$149.99',
-      'date': '2025-09-02',
-      'time': '16:45',
-      'items': [
-        {'name': 'Wireless Earbuds Pro', 'quantity': 1, 'price': '\$149.99'},
-      ],
-      'shipping': 'Standard Shipping',
-      'payment': 'PayPal',
-      'timeline': [
-        {'status': 'Order Placed', 'date': '2025-08-31', 'time': '15:20', 'completed': true},
-        {'status': 'Payment Confirmed', 'date': '2025-08-31', 'time': '15:21', 'completed': true},
-        {'status': 'Processing', 'date': '2025-09-01', 'time': '08:30', 'completed': true},
-        {'status': 'Shipped', 'date': '2025-09-02', 'time': '16:45', 'completed': true},
-        {'status': 'Delivered', 'date': '2025-09-04', 'time': 'Est.', 'completed': false},
-      ]
-    },
-    {
-      'id': '#ORD-2025-003',
-      'customer': 'Emma Davis',
-      'email': 'emma.davis@email.com',
-      'phone': '+1 (555) 456-7890',
-      'status': 'Processing',
-      'statusColor': const Color(0xFFF59E0B),
-      'total': '\$89.99',
-      'date': '2025-09-01',
-      'time': '11:20',
-      'items': [
-        {'name': 'Luxury Leather Wallet', 'quantity': 1, 'price': '\$89.99'},
-      ],
-      'shipping': 'Express Shipping',
-      'payment': 'Apple Pay',
-      'timeline': [
-        {'status': 'Order Placed', 'date': '2025-09-01', 'time': '11:20', 'completed': true},
-        {'status': 'Payment Confirmed', 'date': '2025-09-01', 'time': '11:21', 'completed': true},
-        {'status': 'Processing', 'date': '2025-09-01', 'time': '12:00', 'completed': true},
-        {'status': 'Shipped', 'date': '2025-09-03', 'time': 'Est.', 'completed': false},
-        {'status': 'Delivered', 'date': '2025-09-05', 'time': 'Est.', 'completed': false},
-      ]
-    },
-    {
-      'id': '#ORD-2025-004',
-      'customer': 'Alex Rodriguez',
-      'email': 'alex.rodriguez@email.com',
-      'phone': '+1 (555) 234-5678',
-      'status': 'Pending',
-      'statusColor': const Color(0xFFEF4444),
-      'total': '\$199.99',
-      'date': '2025-08-30',
-      'time': '09:15',
-      'items': [
-        {'name': 'Smart Fitness Watch', 'quantity': 1, 'price': '\$199.99'},
-      ],
-      'shipping': 'Standard Shipping',
-      'payment': 'Pending',
-      'timeline': [
-        {'status': 'Order Placed', 'date': '2025-08-30', 'time': '09:15', 'completed': true},
-        {'status': 'Payment Pending', 'date': '2025-08-30', 'time': '09:16', 'completed': false},
-        {'status': 'Processing', 'date': '2025-08-31', 'time': 'Est.', 'completed': false},
-        {'status': 'Shipped', 'date': '2025-09-02', 'time': 'Est.', 'completed': false},
-        {'status': 'Delivered', 'date': '2025-09-04', 'time': 'Est.', 'completed': false},
-      ]
-    },
-  ];
+  List<Order> _orders = [];
+  List<Order> _filteredOrders = [];
+  bool _isLoading = true;
+  String? _error;
+  String? _currentUserId;
+  String _searchQuery = '';
 
-  final List<String> _filters = ['All', 'Pending', 'Processing', 'Shipped', 'Delivered'];
+  final List<String> _filters = ['All', 'Confirmed', 'Packing', 'On the Way', 'Delivered'];
 
   @override
   void initState() {
@@ -126,18 +37,47 @@ class _OrdersScreenState extends State<OrdersScreen>
       vsync: this,
     );
 
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut),
-    );
-
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.1),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOutBack));
-
     // Start animations
     _fadeController.forward();
     _slideController.forward();
+
+    // Load orders
+    _loadOrders();
+  }
+
+  Future<void> _loadOrders() async {
+    try {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+
+      // Get current user
+      final user = await AppwriteService.getCurrentUser();
+      if (user == null) {
+        setState(() {
+          _error = 'User not authenticated';
+          _isLoading = false;
+        });
+        return;
+      }
+
+      _currentUserId = user.$id;
+
+      // Get orders for this seller
+      final orders = await AppwriteService.getOrdersBySeller(_currentUserId!);
+      _orders = orders;
+      _applyFilters();
+
+      setState(() {
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = 'Failed to load orders: $e';
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -149,46 +89,73 @@ class _OrdersScreenState extends State<OrdersScreen>
 
   @override
   Widget build(BuildContext context) {
-    final filteredOrders = _selectedFilter == 'All'
-        ? _orders
-        : _orders.where((order) => order['status'] == _selectedFilter).toList();
+    final isDesktop = MediaQuery.of(context).size.width > 900;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF0F172A),
-              Color(0xFF1E293B),
-              Color(0xFF334155),
+    if (_isLoading) {
+      return const Scaffold(
+        backgroundColor: Colors.black,
+        body: Center(
+          child: CircularProgressIndicator(
+            color: Color(0xFFFD366E),
+          ),
+        ),
+      );
+    }
+
+    if (_error != null) {
+      return Scaffold(
+        backgroundColor: Colors.black,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                _error!,
+                style: const TextStyle(color: Colors.white),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: _loadOrders,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFD366E),
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('Retry'),
+              ),
             ],
           ),
         ),
-        child: SafeArea(
+      );
+    }
+
+    final filteredOrders = _selectedFilter == 'All'
+        ? _orders
+        : _orders.where((order) => order.status == _selectedFilter).toList();
+
+    // Apply search filter
+    _filteredOrders = _searchQuery.isEmpty
+        ? filteredOrders
+        : filteredOrders.where((order) =>
+            order.id.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+            (order.customerName?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false) ||
+            order.customerEmail?.toLowerCase().contains(_searchQuery.toLowerCase()) == true).toList();
+
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: isDesktop ? 32 : 0),
           child: Column(
             children: [
-              _buildHeader(),
-              _buildStatsOverview(),
-              _buildFilters(),
-              Expanded(
-                child: FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: SlideTransition(
-                    position: _slideAnimation,
-                    child: ListView.builder(
-                      padding: const EdgeInsets.all(20),
-                      itemCount: filteredOrders.length,
-                      itemBuilder: (context, index) {
-                        final order = filteredOrders[index];
-                        return _buildOrderCard(order);
-                      },
-                    ),
-                  ),
-                ),
-              ),
+              _buildHeader(isDesktop),
+              _buildStatsOverview(isDesktop),
+              _buildFilters(isDesktop),
+              if (_filteredOrders.isEmpty)
+                _buildEmptyState(isDesktop)
+              else
+                ..._filteredOrders.map((order) => _buildOrderCard(order, isDesktop)),
+              const SizedBox(height: 32),
             ],
           ),
         ),
@@ -196,30 +163,30 @@ class _OrdersScreenState extends State<OrdersScreen>
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(bool isDesktop) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      margin: EdgeInsets.symmetric(horizontal: isDesktop ? 0 : 16, vertical: 16),
+      padding: EdgeInsets.all(isDesktop ? 24 : 20),
+      decoration: BoxDecoration(
+        color: Colors.black,
+        border: Border.all(
+          color: const Color(0xFFFD366E),
+          width: 1.5,
+        ),
+        borderRadius: BorderRadius.circular(12),
+      ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFFFD366E), Color(0xFF7C3AED)],
-              ),
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFFFD366E).withOpacity(0.3),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+              color: const Color(0xFFFD366E).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(10),
             ),
             child: const Icon(
               Icons.receipt_long,
-              color: Colors.white,
-              size: 28,
+              color: Color(0xFFFD366E),
+              size: 24,
             ),
           ),
           const SizedBox(width: 16),
@@ -227,11 +194,11 @@ class _OrdersScreenState extends State<OrdersScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Orders Management',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 24,
+                    fontSize: isDesktop ? 22 : 20,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -239,7 +206,7 @@ class _OrdersScreenState extends State<OrdersScreen>
                   'Track and manage your orders',
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.7),
-                    fontSize: 14,
+                    fontSize: isDesktop ? 16 : 14,
                   ),
                 ),
               ],
@@ -248,14 +215,14 @@ class _OrdersScreenState extends State<OrdersScreen>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
+              color: Colors.black,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: Colors.white.withOpacity(0.2),
+                color: const Color(0xFFFD366E).withOpacity(0.3),
               ),
             ),
             child: Text(
-              '${_orders.length} Orders',
+              '${_filteredOrders.length} Orders',
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 12,
@@ -268,23 +235,24 @@ class _OrdersScreenState extends State<OrdersScreen>
     );
   }
 
-  Widget _buildStatsOverview() {
-    final totalRevenue = _orders.fold<double>(0, (sum, order) {
-      final amount = double.parse(order['total'].replaceAll('\$', '').replaceAll(',', ''));
-      return sum + amount;
-    });
+  Widget _buildStatsOverview(bool isDesktop) {
+    final totalRevenue = _orders.fold<double>(0, (sum, order) => sum + order.total);
 
-    final deliveredCount = _orders.where((order) => order['status'] == 'Delivered').length;
-    final pendingCount = _orders.where((order) => order['status'] == 'Pending').length;
-    final processingCount = _orders.where((order) => order['status'] == 'Processing').length;
+    final deliveredCount = _orders.where((order) => order.status == 'Delivered').length;
+    final onTheWayCount = _orders.where((order) => order.status == 'On the Way').length;
+    final packingCount = _orders.where((order) => order.status == 'Packing').length;
+    final confirmedCount = _orders.where((order) => order.status == 'Confirmed').length;
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
-      padding: const EdgeInsets.all(20),
+      margin: EdgeInsets.symmetric(horizontal: isDesktop ? 0 : 16, vertical: 16),
+      padding: EdgeInsets.all(isDesktop ? 24 : 20),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withOpacity(0.2)),
+        color: Colors.black,
+        border: Border.all(
+          color: const Color(0xFFFD366E),
+          width: 1.5,
+        ),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         children: [
@@ -293,12 +261,12 @@ class _OrdersScreenState extends State<OrdersScreen>
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: const Color(0xFFFD366E).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(
                   Icons.analytics,
-                  color: Colors.white,
+                  color: Color(0xFFFD366E),
                   size: 20,
                 ),
               ),
@@ -314,6 +282,7 @@ class _OrdersScreenState extends State<OrdersScreen>
             ],
           ),
           const SizedBox(height: 16),
+          // First row: Revenue and Delivered
           Row(
             children: [
               Expanded(
@@ -321,7 +290,7 @@ class _OrdersScreenState extends State<OrdersScreen>
                   'Total Revenue',
                   '\$${totalRevenue.toStringAsFixed(2)}',
                   Icons.attach_money,
-                  const Color(0xFF10B981),
+                  const Color(0xFFFD366E),
                 ),
               ),
               const SizedBox(width: 12),
@@ -333,22 +302,36 @@ class _OrdersScreenState extends State<OrdersScreen>
                   const Color(0xFF10B981),
                 ),
               ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          // Second row: Confirmed, Packing, On the Way
+          Row(
+            children: [
+              Expanded(
+                child: _buildStatItem(
+                  'Confirmed',
+                  '$confirmedCount',
+                  Icons.verified,
+                  const Color(0xFF8B5CF6),
+                ),
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: _buildStatItem(
-                  'Processing',
-                  '$processingCount',
-                  Icons.hourglass_top,
+                  'Packing',
+                  '$packingCount',
+                  Icons.inventory_2,
                   const Color(0xFFF59E0B),
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: _buildStatItem(
-                  'Pending',
-                  '$pendingCount',
-                  Icons.pending,
-                  const Color(0xFFEF4444),
+                  'On the Way',
+                  '$onTheWayCount',
+                  Icons.local_shipping,
+                  const Color(0xFF3B82F6),
                 ),
               ),
             ],
@@ -362,9 +345,11 @@ class _OrdersScreenState extends State<OrdersScreen>
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        color: Colors.black,
+        border: Border.all(
+          color: color.withOpacity(0.3),
+        ),
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
         children: [
@@ -391,9 +376,9 @@ class _OrdersScreenState extends State<OrdersScreen>
     );
   }
 
-  Widget _buildFilters() {
+  Widget _buildFilters(bool isDesktop) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      margin: EdgeInsets.symmetric(horizontal: isDesktop ? 0 : 16, vertical: 16),
       height: 40,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
@@ -411,10 +396,11 @@ class _OrdersScreenState extends State<OrdersScreen>
                 setState(() {
                   _selectedFilter = filter;
                 });
+                _applyFilters();
                 HapticFeedback.lightImpact();
               },
-              backgroundColor: Colors.white.withOpacity(0.1),
-              selectedColor: const Color(0xFFFD366E).withOpacity(0.3),
+              backgroundColor: Colors.black,
+              selectedColor: const Color(0xFFFD366E).withOpacity(0.2),
               checkmarkColor: Colors.white,
               labelStyle: TextStyle(
                 color: isSelected ? Colors.white : Colors.white.withOpacity(0.7),
@@ -425,7 +411,7 @@ class _OrdersScreenState extends State<OrdersScreen>
                 side: BorderSide(
                   color: isSelected
                       ? const Color(0xFFFD366E)
-                      : Colors.white.withOpacity(0.3),
+                      : const Color(0xFFFD366E).withOpacity(0.3),
                 ),
               ),
             ),
@@ -435,21 +421,41 @@ class _OrdersScreenState extends State<OrdersScreen>
     );
   }
 
-  Widget _buildOrderCard(Map<String, dynamic> order) {
+  void _applyFilters() {
+    setState(() {
+      final filteredOrders = _selectedFilter == 'All'
+          ? _orders
+          : _orders.where((order) => order.status == _selectedFilter).toList();
+
+      // Apply search filter
+      _filteredOrders = _searchQuery.isEmpty
+          ? filteredOrders
+          : filteredOrders.where((order) =>
+              order.id.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+              (order.customerName?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false) ||
+              order.customerEmail?.toLowerCase().contains(_searchQuery.toLowerCase()) == true).toList();
+    });
+  }
+
+  Widget _buildOrderCard(Order order, bool isDesktop) {
+    final statusColor = _getStatusColor(order.status);
+
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: EdgeInsets.only(bottom: 16, left: isDesktop ? 0 : 16, right: isDesktop ? 0 : 16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withOpacity(0.2)),
+        color: Colors.black,
+        border: Border.all(
+          color: const Color(0xFFFD366E).withOpacity(0.3),
+        ),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(12),
           onTap: () => _showOrderDetails(order),
           child: Padding(
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.all(isDesktop ? 24 : 20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -459,12 +465,12 @@ class _OrdersScreenState extends State<OrdersScreen>
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: order['statusColor'].withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(12),
+                        color: statusColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
                       ),
                       child: Icon(
-                        _getStatusIcon(order['status']),
-                        color: order['statusColor'],
+                        _getStatusIcon(order.status),
+                        color: statusColor,
                         size: 20,
                       ),
                     ),
@@ -474,7 +480,7 @@ class _OrdersScreenState extends State<OrdersScreen>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            order['id'],
+                            '#${order.id.substring(0, 8).toUpperCase()}',
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 16,
@@ -482,7 +488,7 @@ class _OrdersScreenState extends State<OrdersScreen>
                             ),
                           ),
                           Text(
-                            order['customer'],
+                            order.customerName ?? 'Customer',
                             style: TextStyle(
                               color: Colors.white.withOpacity(0.7),
                               fontSize: 14,
@@ -495,7 +501,7 @@ class _OrdersScreenState extends State<OrdersScreen>
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text(
-                          order['total'],
+                          '\$${order.total.toStringAsFixed(2)}',
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 18,
@@ -505,13 +511,16 @@ class _OrdersScreenState extends State<OrdersScreen>
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: order['statusColor'].withOpacity(0.2),
+                            color: statusColor.withOpacity(0.1),
+                            border: Border.all(
+                              color: statusColor.withOpacity(0.3),
+                            ),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            order['status'],
+                            order.status,
                             style: TextStyle(
-                              color: order['statusColor'],
+                              color: statusColor,
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
                             ),
@@ -528,8 +537,11 @@ class _OrdersScreenState extends State<OrdersScreen>
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.05),
-                    borderRadius: BorderRadius.circular(12),
+                    color: Colors.black,
+                    border: Border.all(
+                      color: const Color(0xFFFD366E).withOpacity(0.1),
+                    ),
+                    borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
                     children: [
@@ -537,12 +549,7 @@ class _OrdersScreenState extends State<OrdersScreen>
                         width: 40,
                         height: 40,
                         decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              order['statusColor'].withOpacity(0.3),
-                              order['statusColor'].withOpacity(0.1),
-                            ],
-                          ),
+                          color: statusColor.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: const Icon(
@@ -557,7 +564,7 @@ class _OrdersScreenState extends State<OrdersScreen>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              '${order['items'].length} item${order['items'].length > 1 ? 's' : ''}',
+                              '${order.items} item${order.items > 1 ? 's' : ''}',
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 14,
@@ -565,7 +572,7 @@ class _OrdersScreenState extends State<OrdersScreen>
                               ),
                             ),
                             Text(
-                              order['items'][0]['name'],
+                              'Quantity ordered',
                               style: TextStyle(
                                 color: Colors.white.withOpacity(0.6),
                                 fontSize: 12,
@@ -577,7 +584,7 @@ class _OrdersScreenState extends State<OrdersScreen>
                         ),
                       ),
                       Text(
-                        '${order['date']} ${order['time']}',
+                        '${order.createdAt.month}/${order.createdAt.day} ${order.createdAt.hour}:${order.createdAt.minute.toString().padLeft(2, '0')}',
                         style: TextStyle(
                           color: Colors.white.withOpacity(0.5),
                           fontSize: 12,
@@ -596,7 +603,7 @@ class _OrdersScreenState extends State<OrdersScreen>
                       child: Container(
                         height: 36,
                         decoration: BoxDecoration(
-                          border: Border.all(color: Colors.white.withOpacity(0.3)),
+                          border: Border.all(color: const Color(0xFFFD366E).withOpacity(0.3)),
                           borderRadius: BorderRadius.circular(18),
                         ),
                         child: Material(
@@ -632,20 +639,20 @@ class _OrdersScreenState extends State<OrdersScreen>
                       height: 36,
                       width: 36,
                       decoration: BoxDecoration(
-                        color: order['statusColor'].withOpacity(0.2),
+                        color: statusColor.withOpacity(0.1),
+                        border: Border.all(
+                          color: statusColor.withOpacity(0.3),
+                        ),
                         borderRadius: BorderRadius.circular(18),
                       ),
                       child: Material(
                         color: Colors.transparent,
                         child: InkWell(
                           borderRadius: BorderRadius.circular(18),
-                          onTap: () {
-                            // Handle status update
-                            HapticFeedback.lightImpact();
-                          },
+                          onTap: () => _showStatusUpdateDialog(order),
                           child: Icon(
                             Icons.more_vert,
-                            color: order['statusColor'],
+                            color: statusColor,
                             size: 18,
                           ),
                         ),
@@ -661,22 +668,39 @@ class _OrdersScreenState extends State<OrdersScreen>
     );
   }
 
+  Color _getStatusColor(String status) {
+    switch (status) {
+      case 'Delivered':
+        return const Color(0xFF10B981);
+      case 'On the Way':
+        return const Color(0xFF3B82F6);
+      case 'Packing':
+        return const Color(0xFFF59E0B);
+      case 'Confirmed':
+        return const Color(0xFF8B5CF6);
+      default:
+        return Colors.white;
+    }
+  }
+
   IconData _getStatusIcon(String status) {
     switch (status) {
       case 'Delivered':
         return Icons.check_circle;
-      case 'Shipped':
+      case 'On the Way':
         return Icons.local_shipping;
-      case 'Processing':
-        return Icons.hourglass_top;
-      case 'Pending':
-        return Icons.pending;
+      case 'Packing':
+        return Icons.inventory_2;
+      case 'Confirmed':
+        return Icons.verified;
       default:
         return Icons.receipt;
     }
   }
 
-  void _showOrderDetails(Map<String, dynamic> order) {
+  void _showOrderDetails(Order order) {
+    final statusColor = _getStatusColor(order.status);
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -719,12 +743,12 @@ class _OrdersScreenState extends State<OrdersScreen>
                           Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: order['statusColor'].withOpacity(0.2),
+                              color: statusColor.withOpacity(0.2),
                               borderRadius: BorderRadius.circular(16),
                             ),
                             child: Icon(
-                              _getStatusIcon(order['status']),
-                              color: order['statusColor'],
+                              _getStatusIcon(order.status),
+                              color: statusColor,
                               size: 24,
                             ),
                           ),
@@ -734,7 +758,7 @@ class _OrdersScreenState extends State<OrdersScreen>
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  order['id'],
+                                  '#${order.id.substring(0, 8).toUpperCase()}',
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 20,
@@ -742,7 +766,7 @@ class _OrdersScreenState extends State<OrdersScreen>
                                   ),
                                 ),
                                 Text(
-                                  order['customer'],
+                                  order.customerName ?? 'Customer',
                                   style: TextStyle(
                                     color: Colors.white.withOpacity(0.7),
                                     fontSize: 14,
@@ -754,48 +778,19 @@ class _OrdersScreenState extends State<OrdersScreen>
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                             decoration: BoxDecoration(
-                              color: order['statusColor'].withOpacity(0.2),
+                              color: statusColor.withOpacity(0.2),
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(
-                              order['status'],
+                              order.status,
                               style: TextStyle(
-                                color: order['statusColor'],
+                                color: statusColor,
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
                         ],
-                      ),
-
-                      const SizedBox(height: 24),
-
-                      // Order Timeline
-                      Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.05),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Order Timeline',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            ...order['timeline'].map<Widget>((step) {
-                              final index = order['timeline'].indexOf(step);
-                              return _buildTimelineStep(step, index == order['timeline'].length - 1);
-                            }).toList(),
-                          ],
-                        ),
                       ),
 
                       const SizedBox(height: 24),
@@ -819,7 +814,7 @@ class _OrdersScreenState extends State<OrdersScreen>
                               ),
                             ),
                             const SizedBox(height: 16),
-                            ...order['items'].map<Widget>((item) => Container(
+                            Container(
                               margin: const EdgeInsets.only(bottom: 12),
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
@@ -834,8 +829,8 @@ class _OrdersScreenState extends State<OrdersScreen>
                                     decoration: BoxDecoration(
                                       gradient: LinearGradient(
                                         colors: [
-                                          order['statusColor'].withOpacity(0.3),
-                                          order['statusColor'].withOpacity(0.1),
+                                          statusColor.withOpacity(0.3),
+                                          statusColor.withOpacity(0.1),
                                         ],
                                       ),
                                       borderRadius: BorderRadius.circular(8),
@@ -852,7 +847,7 @@ class _OrdersScreenState extends State<OrdersScreen>
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          item['name'],
+                                          'Order Quantity',
                                           style: const TextStyle(
                                             color: Colors.white,
                                             fontSize: 14,
@@ -860,7 +855,7 @@ class _OrdersScreenState extends State<OrdersScreen>
                                           ),
                                         ),
                                         Text(
-                                          'Qty: ${item['quantity']} • ${item['price']}',
+                                          'Qty: ${order.items}',
                                           style: TextStyle(
                                             color: Colors.white.withOpacity(0.6),
                                             fontSize: 12,
@@ -871,7 +866,7 @@ class _OrdersScreenState extends State<OrdersScreen>
                                   ),
                                 ],
                               ),
-                            )).toList(),
+                            ),
                           ],
                         ),
                       ),
@@ -895,7 +890,7 @@ class _OrdersScreenState extends State<OrdersScreen>
                                     children: [
                                       Icon(
                                         Icons.person,
-                                        color: order['statusColor'],
+                                        color: statusColor,
                                         size: 20,
                                       ),
                                       const SizedBox(width: 8),
@@ -911,7 +906,7 @@ class _OrdersScreenState extends State<OrdersScreen>
                                   ),
                                   const SizedBox(height: 12),
                                   Text(
-                                    order['customer'],
+                                    order.customerName ?? 'N/A',
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 14,
@@ -919,14 +914,14 @@ class _OrdersScreenState extends State<OrdersScreen>
                                     ),
                                   ),
                                   Text(
-                                    order['email'],
+                                    order.customerEmail ?? 'N/A',
                                     style: TextStyle(
                                       color: Colors.white.withOpacity(0.6),
                                       fontSize: 12,
                                     ),
                                   ),
                                   Text(
-                                    order['phone'],
+                                    order.customerPhone ?? 'N/A',
                                     style: TextStyle(
                                       color: Colors.white.withOpacity(0.6),
                                       fontSize: 12,
@@ -951,12 +946,12 @@ class _OrdersScreenState extends State<OrdersScreen>
                                     children: [
                                       Icon(
                                         Icons.local_shipping,
-                                        color: order['statusColor'],
+                                        color: statusColor,
                                         size: 20,
                                       ),
                                       const SizedBox(width: 8),
                                       const Text(
-                                        'Shipping & Payment',
+                                        'Order Summary',
                                         style: TextStyle(
                                           color: Colors.white,
                                           fontSize: 16,
@@ -967,26 +962,25 @@ class _OrdersScreenState extends State<OrdersScreen>
                                   ),
                                   const SizedBox(height: 12),
                                   Text(
-                                    order['shipping'],
+                                    'Total: \$${order.total.toStringAsFixed(2)}',
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 14,
-                                      fontWeight: FontWeight.w500,
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                   Text(
-                                    order['payment'],
+                                    'Payment: ${order.paymentMethod ?? 'N/A'}',
                                     style: TextStyle(
                                       color: Colors.white.withOpacity(0.6),
                                       fontSize: 12,
                                     ),
                                   ),
                                   Text(
-                                    'Total: ${order['total']}',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
+                                    'Date: ${order.createdAt.month}/${order.createdAt.day}/${order.createdAt.year}',
+                                    style: TextStyle(
+                                      color: Colors.white.withOpacity(0.6),
+                                      fontSize: 12,
                                     ),
                                   ),
                                 ],
@@ -1043,8 +1037,8 @@ class _OrdersScreenState extends State<OrdersScreen>
                               decoration: BoxDecoration(
                                 gradient: LinearGradient(
                                   colors: [
-                                    order['statusColor'],
-                                    order['statusColor'].withOpacity(0.8),
+                                    statusColor,
+                                    statusColor.withOpacity(0.8),
                                   ],
                                 ),
                                 borderRadius: BorderRadius.circular(24),
@@ -1054,9 +1048,8 @@ class _OrdersScreenState extends State<OrdersScreen>
                                 child: InkWell(
                                   borderRadius: BorderRadius.circular(24),
                                   onTap: () {
-                                    // Handle status update
-                                    HapticFeedback.lightImpact();
-                                    Navigator.pop(context);
+                                    Navigator.pop(context); // Close details modal
+                                    _showStatusUpdateDialog(order);
                                   },
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
@@ -1094,59 +1087,225 @@ class _OrdersScreenState extends State<OrdersScreen>
     );
   }
 
-  Widget _buildTimelineStep(Map<String, dynamic> step, bool isLast) {
-    return Row(
-      children: [
-        Column(
-          children: [
-            Container(
-              width: 12,
-              height: 12,
-              decoration: BoxDecoration(
-                color: step['completed'] ? const Color(0xFF10B981) : Colors.white.withOpacity(0.3),
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: step['completed'] ? const Color(0xFF10B981) : Colors.white.withOpacity(0.5),
-                  width: 2,
-                ),
+  Widget _buildEmptyState(bool isDesktop) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFD366E).withOpacity(0.1),
+              border: Border.all(
+                color: const Color(0xFFFD366E),
+                width: 1.5,
               ),
+              borderRadius: BorderRadius.circular(12),
             ),
-            if (!isLast)
-              Container(
-                width: 2,
-                height: 40,
-                color: step['completed'] ? const Color(0xFF10B981) : Colors.white.withOpacity(0.3),
-              ),
-          ],
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Container(
-            margin: const EdgeInsets.only(bottom: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  step['status'],
-                  style: TextStyle(
-                    color: step['completed'] ? Colors.white : Colors.white.withOpacity(0.6),
-                    fontSize: 14,
-                    fontWeight: step['completed'] ? FontWeight.bold : FontWeight.normal,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '${step['date']} ${step['time']}',
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.5),
-                    fontSize: 12,
-                  ),
-                ),
-              ],
+            child: const Icon(
+              Icons.receipt_long,
+              color: Color(0xFFFD366E),
+              size: 48,
             ),
           ),
+          const SizedBox(height: 24),
+          Text(
+            _selectedFilter == 'All' ? 'No orders yet' : 'No $_selectedFilter orders',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            _selectedFilter == 'All'
+                ? 'Your orders will appear here once customers start placing them'
+                : 'No orders with $_selectedFilter status',
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.7),
+              fontSize: 14,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          if (_selectedFilter != 'All')
+            ElevatedButton.icon(
+              onPressed: () {
+                setState(() {
+                  _selectedFilter = 'All';
+                });
+              },
+              icon: const Icon(Icons.filter_list_off),
+              label: const Text('Show All Orders'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFFD366E),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  void _showStatusUpdateDialog(Order order) {
+    final availableStatuses = ['Confirmed', 'Packing', 'On the Way', 'Delivered'];
+    String selectedStatus = order.status;
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          backgroundColor: const Color(0xFF1E293B),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Row(
+            children: [
+              Icon(
+                Icons.update,
+                color: _getStatusColor(order.status),
+                size: 24,
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                'Update Order Status',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Order #${order.id.substring(0, 8).toUpperCase()}',
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.7),
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(height: 20),
+              ...availableStatuses.map((status) => Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                decoration: BoxDecoration(
+                  color: selectedStatus == status
+                      ? _getStatusColor(status).withOpacity(0.2)
+                      : Colors.white.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: selectedStatus == status
+                        ? _getStatusColor(status)
+                        : Colors.white.withOpacity(0.1),
+                  ),
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () {
+                      setState(() {
+                        selectedStatus = status;
+                      });
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        children: [
+                          Icon(
+                            _getStatusIcon(status),
+                            color: selectedStatus == status
+                                ? _getStatusColor(status)
+                                : Colors.white.withOpacity(0.7),
+                            size: 20,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              status,
+                              style: TextStyle(
+                                color: selectedStatus == status
+                                    ? Colors.white
+                                    : Colors.white.withOpacity(0.7),
+                                fontSize: 16,
+                                fontWeight: selectedStatus == status
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                              ),
+                            ),
+                          ),
+                          if (selectedStatus == status)
+                            Icon(
+                              Icons.check_circle,
+                              color: _getStatusColor(status),
+                              size: 20,
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              )),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                'Cancel',
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.7),
+                  fontSize: 16,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: selectedStatus != order.status ? () async {
+                try {
+                  await AppwriteService.updateOrderStatus(order.id, selectedStatus);
+                  await _loadOrders(); // Refresh the list
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Order status updated to $selectedStatus'),
+                      backgroundColor: _getStatusColor(selectedStatus),
+                    ),
+                  );
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Failed to update order: $e'),
+                      backgroundColor: const Color(0xFFEF4444),
+                    ),
+                  );
+                }
+              } : null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _getStatusColor(selectedStatus),
+                foregroundColor: Colors.white,
+                disabledBackgroundColor: Colors.white.withOpacity(0.1),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text(
+                'Update Status',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }

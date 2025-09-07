@@ -3,23 +3,22 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../providers/auth_provider.dart';
-import '../widgets/landing_store_preview.dart';
 
-class LandingScreen extends ConsumerStatefulWidget {
-  const LandingScreen({Key? key}) : super(key: key);
+class FeaturesScreen extends ConsumerStatefulWidget {
+  const FeaturesScreen({Key? key}) : super(key: key);
 
   @override
-  ConsumerState<LandingScreen> createState() => _LandingScreenState();
+  ConsumerState<FeaturesScreen> createState() => _FeaturesScreenState();
 }
 
-class _LandingScreenState extends ConsumerState<LandingScreen>
+class _FeaturesScreenState extends ConsumerState<FeaturesScreen>
     with TickerProviderStateMixin {
   // Appwrite theme colors
   static const Color appwritePink = Color(0xFFFD366E);
   static const Color appwriteBlack = Color(0xFF000000);
   static const Color appwriteDarkGray = Color(0xFF0F0F0F);
   static const Color appwriteBorder = Color(0xFF1A1A1A);
-  
+
   late AnimationController _heroAnimationController;
   late Animation<double> _heroFadeAnimation;
   late AnimationController _featuresAnimationController;
@@ -96,8 +95,8 @@ class _LandingScreenState extends ConsumerState<LandingScreen>
           child: Column(
             children: [
               _buildHeroSection(),
-              _buildFeaturesSection(),
-              _buildStatsSection(),
+              _buildFeaturesGrid(),
+              _buildDetailedFeatures(),
               _buildCTASection(),
               _buildFooter(),
             ],
@@ -110,7 +109,7 @@ class _LandingScreenState extends ConsumerState<LandingScreen>
   PreferredSizeWidget _buildAppBar() {
     final authState = ref.watch(authStateProvider);
     final isAuthenticated = authState == AuthState.authenticated;
-    
+
     return AppBar(
       backgroundColor: _isScrolled
           ? appwriteBlack.withOpacity(0.95)
@@ -175,46 +174,6 @@ class _LandingScreenState extends ConsumerState<LandingScreen>
           ),
         ]
       ] : [
-        TextButton(
-          onPressed: () => context.go('/features'),
-          child: const Text(
-            'Features',
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-        TextButton(
-          onPressed: () => context.go('/pricing'),
-          child: const Text(
-            'Pricing',
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-        TextButton(
-          onPressed: () => context.go('/about'),
-          child: const Text(
-            'About',
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-        TextButton(
-          onPressed: () => context.go('/support'),
-          child: const Text(
-            'Support',
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
         if (isAuthenticated) ...[
           Container(
             margin: const EdgeInsets.only(right: 16),
@@ -272,6 +231,7 @@ class _LandingScreenState extends ConsumerState<LandingScreen>
         top: _isMobile ? 100 : 150,
         left: _isMobile ? 20 : 80,
         right: _isMobile ? 20 : 80,
+        bottom: _isMobile ? 60 : 100,
       ),
       child: FadeTransition(
         opacity: _heroFadeAnimation,
@@ -293,13 +253,13 @@ class _LandingScreenState extends ConsumerState<LandingScreen>
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
-                    Icons.rocket_launch,
+                    Icons.star,
                     color: appwritePink,
                     size: 16,
                   ),
                   const SizedBox(width: 8),
                   const Text(
-                    'Launch your store in minutes',
+                    'Powerful Features',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 14,
@@ -310,10 +270,10 @@ class _LandingScreenState extends ConsumerState<LandingScreen>
               ),
             ),
             const SizedBox(height: 32),
-            
+
             // Main heading
             Text(
-              'Build Beautiful Stores\nInstantly',
+              'Everything You Need\nto Succeed Online',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: _isMobile ? 40 : 72,
@@ -324,12 +284,12 @@ class _LandingScreenState extends ConsumerState<LandingScreen>
               ),
             ),
             const SizedBox(height: 20),
-            
+
             // Subheading
             Container(
               constraints: const BoxConstraints(maxWidth: 600),
               child: Text(
-                'Create stunning ecommerce websites without any coding. Our AI-powered platform helps you launch your online store in minutes, not months.',
+                'Discover the powerful features that make StorePe the perfect platform for your online business. From AI-powered design to advanced analytics, we have everything you need.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: _isMobile ? 18 : 20,
@@ -339,13 +299,9 @@ class _LandingScreenState extends ConsumerState<LandingScreen>
               ),
             ),
             const SizedBox(height: 40),
-            
+
             // CTA Buttons
             _buildHeroButtons(),
-            const SizedBox(height: 60),
-            
-            // Store preview
-            _buildHeroPreview(),
           ],
         ),
       ),
@@ -355,7 +311,7 @@ class _LandingScreenState extends ConsumerState<LandingScreen>
   Widget _buildHeroButtons() {
     final authState = ref.watch(authStateProvider);
     final isAuthenticated = authState == AuthState.authenticated;
-    
+
     return Wrap(
       spacing: 16,
       runSpacing: 16,
@@ -406,13 +362,13 @@ class _LandingScreenState extends ConsumerState<LandingScreen>
           Container(
             height: 56,
             child: OutlinedButton.icon(
-              onPressed: () => context.go('/login'),
+              onPressed: () => context.go('/pricing'),
               icon: const Icon(
-                Icons.play_circle_outline,
+                Icons.attach_money,
                 size: 20,
               ),
               label: const Text(
-                'Watch Demo',
+                'View Pricing',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -432,50 +388,11 @@ class _LandingScreenState extends ConsumerState<LandingScreen>
     );
   }
 
-  Widget _buildHeroPreview() {
-    return Container(
-      constraints: BoxConstraints(
-        maxWidth: _isMobile ? double.infinity : 800,
-        maxHeight: _isMobile ? 300 : 500,
-      ),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: appwriteBorder,
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: appwritePink.withOpacity(0.2),
-            blurRadius: 40,
-            offset: const Offset(0, 20),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                appwriteDarkGray,
-                appwriteBlack,
-              ],
-            ),
-          ),
-          child: const LandingStorePreview(),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFeaturesSection() {
+  Widget _buildFeaturesGrid() {
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: _isMobile ? 20 : 80,
-        vertical: _isMobile ? 80 : 120,
+        vertical: _isMobile ? 60 : 100,
       ),
       child: AnimatedBuilder(
         animation: _featuresSlideAnimation,
@@ -485,7 +402,7 @@ class _LandingScreenState extends ConsumerState<LandingScreen>
             child: Column(
               children: [
                 Text(
-                  'Everything you need to succeed',
+                  'Core Features',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: _isMobile ? 32 : 48,
@@ -497,7 +414,7 @@ class _LandingScreenState extends ConsumerState<LandingScreen>
                 Container(
                   constraints: const BoxConstraints(maxWidth: 600),
                   child: Text(
-                    'Powerful features designed to help you create, manage, and scale your online business.',
+                    'Powerful tools designed to help you create, manage, and scale your online business.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: _isMobile ? 16 : 18,
@@ -516,13 +433,18 @@ class _LandingScreenState extends ConsumerState<LandingScreen>
                   childAspectRatio: _isMobile ? 1.3 : 1.0,
                   children: [
                     _buildFeatureCard(
+                      icon: Icons.auto_awesome,
+                      title: 'AI-Powered Design',
+                      description: 'Intelligent design system creates beautiful stores automatically.',
+                    ),
+                    _buildFeatureCard(
                       icon: Icons.speed,
                       title: 'Lightning Fast',
                       description: 'Deploy in under 5 minutes with our optimized platform.',
                     ),
                     _buildFeatureCard(
                       icon: Icons.palette,
-                      title: 'Beautiful Designs',
+                      title: 'Beautiful Templates',
                       description: 'Professional templates that convert visitors.',
                     ),
                     _buildFeatureCard(
@@ -539,11 +461,6 @@ class _LandingScreenState extends ConsumerState<LandingScreen>
                       icon: Icons.mobile_friendly,
                       title: 'Mobile Optimized',
                       description: 'Perfect on every device, automatically.',
-                    ),
-                    _buildFeatureCard(
-                      icon: Icons.support_agent,
-                      title: '24/7 Support',
-                      description: 'Get help anytime from our expert team.',
                     ),
                   ],
                 ),
@@ -638,11 +555,11 @@ class _LandingScreenState extends ConsumerState<LandingScreen>
     );
   }
 
-  Widget _buildStatsSection() {
+  Widget _buildDetailedFeatures() {
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: _isMobile ? 20 : 80,
-        vertical: _isMobile ? 60 : 80,
+        vertical: _isMobile ? 60 : 100,
       ),
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -658,97 +575,223 @@ class _LandingScreenState extends ConsumerState<LandingScreen>
       child: Column(
         children: [
           Text(
-            'Trusted by thousands of businesses',
+            'Advanced Capabilities',
             style: TextStyle(
-              fontSize: _isMobile ? 24 : 32,
+              fontSize: _isMobile ? 32 : 48,
               fontWeight: FontWeight.bold,
               color: Colors.white,
             ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 60),
-          GridView.count(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            crossAxisCount: _isMobile ? 2 : 4,
-            mainAxisSpacing: _isMobile ? 16 : 32,
-            crossAxisSpacing: _isMobile ? 16 : 32,
-            childAspectRatio: _isMobile ? 1.3 : 1.0,
-            children: [
-              _buildStatCard('10K+', 'Active Stores'),
-              _buildStatCard('99.9%', 'Uptime'),
-              _buildStatCard('\$50M+', 'Revenue Generated'),
-              _buildStatCard('4.9/5', 'Customer Rating'),
-            ],
-          ),
+          _isMobile
+              ? Column(
+                  children: [
+                    _buildDetailedFeature(
+                      icon: Icons.inventory,
+                      title: 'Inventory Management',
+                      description: 'Advanced inventory tracking with automatic stock alerts and low-stock notifications.',
+                      isReversed: false,
+                    ),
+                    const SizedBox(height: 60),
+                    _buildDetailedFeature(
+                      icon: Icons.people,
+                      title: 'Customer Management',
+                      description: 'Comprehensive customer profiles with purchase history and personalized recommendations.',
+                      isReversed: true,
+                    ),
+                    const SizedBox(height: 60),
+                    _buildDetailedFeature(
+                      icon: Icons.trending_up,
+                      title: 'Advanced Analytics',
+                      description: 'Deep insights into customer behavior, sales trends, and performance metrics.',
+                      isReversed: false,
+                    ),
+                  ],
+                )
+              : Column(
+                  children: [
+                    _buildDetailedFeature(
+                      icon: Icons.inventory,
+                      title: 'Inventory Management',
+                      description: 'Advanced inventory tracking with automatic stock alerts and low-stock notifications.',
+                      isReversed: false,
+                    ),
+                    const SizedBox(height: 80),
+                    _buildDetailedFeature(
+                      icon: Icons.people,
+                      title: 'Customer Management',
+                      description: 'Comprehensive customer profiles with purchase history and personalized recommendations.',
+                      isReversed: true,
+                    ),
+                    const SizedBox(height: 80),
+                    _buildDetailedFeature(
+                      icon: Icons.trending_up,
+                      title: 'Advanced Analytics',
+                      description: 'Deep insights into customer behavior, sales trends, and performance metrics.',
+                      isReversed: false,
+                    ),
+                  ],
+                ),
         ],
       ),
     );
   }
 
-  Widget _buildStatCard(String value, String label) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Expanded(
-          flex: 2,
-          child: _isMobile
-              ? FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    value,
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: appwritePink,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                )
-              : FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    value,
-                    style: const TextStyle(
-                      fontSize: 48,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFFFD366E),
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
+  Widget _buildDetailedFeature({
+    required IconData icon,
+    required String title,
+    required String description,
+    required bool isReversed,
+  }) {
+    return _isMobile
+        ? Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: appwritePink.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(16),
                 ),
-        ),
-        SizedBox(height: _isMobile ? 4 : 8),
-        Expanded(
-          flex: 1,
-          child: _isMobile
-              ? FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: Colors.white.withOpacity(0.7),
-                      fontWeight: FontWeight.w500,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                )
-              : FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    label,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: Color(0xFFFFFFFF),
-                      fontWeight: FontWeight.w500,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
+                child: Icon(
+                  icon,
+                  color: appwritePink,
+                  size: 48,
                 ),
-        ),
-      ],
-    );
+              ),
+              const SizedBox(height: 24),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                description,
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.white.withOpacity(0.8),
+                  height: 1.6,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          )
+        : Row(
+            children: isReversed
+                ? [
+                    Expanded(
+                      flex: 1,
+                      child: Container(
+                        padding: const EdgeInsets.all(48),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              title,
+                              style: const TextStyle(
+                                fontSize: 36,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            Text(
+                              description,
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Colors.white.withOpacity(0.8),
+                                height: 1.6,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 60),
+                    Expanded(
+                      flex: 1,
+                      child: Container(
+                        height: 300,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [appwritePink.withOpacity(0.2), appwritePink.withOpacity(0.1)],
+                          ),
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(
+                            color: appwritePink.withOpacity(0.3),
+                            width: 2,
+                          ),
+                        ),
+                        child: Center(
+                          child: Icon(
+                            icon,
+                            color: appwritePink,
+                            size: 80,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ]
+                : [
+                    Expanded(
+                      flex: 1,
+                      child: Container(
+                        height: 300,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [appwritePink.withOpacity(0.2), appwritePink.withOpacity(0.1)],
+                          ),
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(
+                            color: appwritePink.withOpacity(0.3),
+                            width: 2,
+                          ),
+                        ),
+                        child: Center(
+                          child: Icon(
+                            icon,
+                            color: appwritePink,
+                            size: 80,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 60),
+                    Expanded(
+                      flex: 1,
+                      child: Container(
+                        padding: const EdgeInsets.all(48),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              title,
+                              style: const TextStyle(
+                                fontSize: 36,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            Text(
+                              description,
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Colors.white.withOpacity(0.8),
+                                height: 1.6,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+          );
   }
 
   Widget _buildCTASection() {
@@ -777,7 +820,7 @@ class _LandingScreenState extends ConsumerState<LandingScreen>
         child: Column(
           children: [
             Text(
-              'Ready to start selling?',
+              'Ready to Experience These Features?',
               style: TextStyle(
                 fontSize: _isMobile ? 32 : 48,
                 fontWeight: FontWeight.bold,
@@ -789,7 +832,7 @@ class _LandingScreenState extends ConsumerState<LandingScreen>
             Container(
               constraints: const BoxConstraints(maxWidth: 600),
               child: Text(
-                'Join thousands of successful businesses. Create your online store today and start selling within minutes.',
+                'Join thousands of successful businesses using StorePe. Start your free trial today and see the difference our features can make.',
                 style: TextStyle(
                   fontSize: _isMobile ? 16 : 18,
                   color: Colors.white.withOpacity(0.8),
@@ -816,7 +859,7 @@ class _LandingScreenState extends ConsumerState<LandingScreen>
               ),
               child: ElevatedButton.icon(
                 onPressed: () {
-                  context.go('/signup');
+                  context.go('/register');
                 },
                 icon: const Icon(Icons.rocket_launch, size: 20),
                 label: const Text(

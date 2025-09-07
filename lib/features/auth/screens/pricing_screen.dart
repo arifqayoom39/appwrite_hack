@@ -3,27 +3,26 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../providers/auth_provider.dart';
-import '../widgets/landing_store_preview.dart';
 
-class LandingScreen extends ConsumerStatefulWidget {
-  const LandingScreen({Key? key}) : super(key: key);
+class PricingScreen extends ConsumerStatefulWidget {
+  const PricingScreen({Key? key}) : super(key: key);
 
   @override
-  ConsumerState<LandingScreen> createState() => _LandingScreenState();
+  ConsumerState<PricingScreen> createState() => _PricingScreenState();
 }
 
-class _LandingScreenState extends ConsumerState<LandingScreen>
+class _PricingScreenState extends ConsumerState<PricingScreen>
     with TickerProviderStateMixin {
   // Appwrite theme colors
   static const Color appwritePink = Color(0xFFFD366E);
   static const Color appwriteBlack = Color(0xFF000000);
   static const Color appwriteDarkGray = Color(0xFF0F0F0F);
   static const Color appwriteBorder = Color(0xFF1A1A1A);
-  
+
   late AnimationController _heroAnimationController;
   late Animation<double> _heroFadeAnimation;
-  late AnimationController _featuresAnimationController;
-  late Animation<double> _featuresSlideAnimation;
+  late AnimationController _pricingAnimationController;
+  late Animation<double> _pricingSlideAnimation;
 
   final ScrollController _scrollController = ScrollController();
   bool _isScrolled = false;
@@ -36,7 +35,7 @@ class _LandingScreenState extends ConsumerState<LandingScreen>
       duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
-    _featuresAnimationController = AnimationController(
+    _pricingAnimationController = AnimationController(
       duration: const Duration(milliseconds: 1000),
       vsync: this,
     );
@@ -44,13 +43,13 @@ class _LandingScreenState extends ConsumerState<LandingScreen>
     _heroFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _heroAnimationController, curve: Curves.easeOut),
     );
-    _featuresSlideAnimation = Tween<double>(begin: 50.0, end: 0.0).animate(
-      CurvedAnimation(parent: _featuresAnimationController, curve: Curves.easeOut),
+    _pricingSlideAnimation = Tween<double>(begin: 50.0, end: 0.0).animate(
+      CurvedAnimation(parent: _pricingAnimationController, curve: Curves.easeOut),
     );
 
     _heroAnimationController.forward();
     Future.delayed(const Duration(milliseconds: 300), () {
-      _featuresAnimationController.forward();
+      _pricingAnimationController.forward();
     });
 
     _scrollController.addListener(_onScroll);
@@ -59,7 +58,7 @@ class _LandingScreenState extends ConsumerState<LandingScreen>
   @override
   void dispose() {
     _heroAnimationController.dispose();
-    _featuresAnimationController.dispose();
+    _pricingAnimationController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -96,8 +95,9 @@ class _LandingScreenState extends ConsumerState<LandingScreen>
           child: Column(
             children: [
               _buildHeroSection(),
-              _buildFeaturesSection(),
-              _buildStatsSection(),
+              _buildPricingSection(),
+              _buildComparisonSection(),
+              _buildFAQSection(),
               _buildCTASection(),
               _buildFooter(),
             ],
@@ -110,7 +110,7 @@ class _LandingScreenState extends ConsumerState<LandingScreen>
   PreferredSizeWidget _buildAppBar() {
     final authState = ref.watch(authStateProvider);
     final isAuthenticated = authState == AuthState.authenticated;
-    
+
     return AppBar(
       backgroundColor: _isScrolled
           ? appwriteBlack.withOpacity(0.95)
@@ -175,46 +175,6 @@ class _LandingScreenState extends ConsumerState<LandingScreen>
           ),
         ]
       ] : [
-        TextButton(
-          onPressed: () => context.go('/features'),
-          child: const Text(
-            'Features',
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-        TextButton(
-          onPressed: () => context.go('/pricing'),
-          child: const Text(
-            'Pricing',
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-        TextButton(
-          onPressed: () => context.go('/about'),
-          child: const Text(
-            'About',
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-        TextButton(
-          onPressed: () => context.go('/support'),
-          child: const Text(
-            'Support',
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
         if (isAuthenticated) ...[
           Container(
             margin: const EdgeInsets.only(right: 16),
@@ -272,6 +232,7 @@ class _LandingScreenState extends ConsumerState<LandingScreen>
         top: _isMobile ? 100 : 150,
         left: _isMobile ? 20 : 80,
         right: _isMobile ? 20 : 80,
+        bottom: _isMobile ? 60 : 100,
       ),
       child: FadeTransition(
         opacity: _heroFadeAnimation,
@@ -293,13 +254,13 @@ class _LandingScreenState extends ConsumerState<LandingScreen>
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
-                    Icons.rocket_launch,
+                    Icons.attach_money,
                     color: appwritePink,
                     size: 16,
                   ),
                   const SizedBox(width: 8),
                   const Text(
-                    'Launch your store in minutes',
+                    'Simple Pricing',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 14,
@@ -310,10 +271,10 @@ class _LandingScreenState extends ConsumerState<LandingScreen>
               ),
             ),
             const SizedBox(height: 32),
-            
+
             // Main heading
             Text(
-              'Build Beautiful Stores\nInstantly',
+              'Choose Your Plan',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: _isMobile ? 40 : 72,
@@ -324,12 +285,12 @@ class _LandingScreenState extends ConsumerState<LandingScreen>
               ),
             ),
             const SizedBox(height: 20),
-            
+
             // Subheading
             Container(
               constraints: const BoxConstraints(maxWidth: 600),
               child: Text(
-                'Create stunning ecommerce websites without any coding. Our AI-powered platform helps you launch your online store in minutes, not months.',
+                'Start free and scale as you grow. All plans include our core features with no hidden fees.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: _isMobile ? 18 : 20,
@@ -338,215 +299,140 @@ class _LandingScreenState extends ConsumerState<LandingScreen>
                 ),
               ),
             ),
-            const SizedBox(height: 40),
-            
-            // CTA Buttons
-            _buildHeroButtons(),
-            const SizedBox(height: 60),
-            
-            // Store preview
-            _buildHeroPreview(),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildHeroButtons() {
-    final authState = ref.watch(authStateProvider);
-    final isAuthenticated = authState == AuthState.authenticated;
-    
-    return Wrap(
-      spacing: 16,
-      runSpacing: 16,
-      alignment: WrapAlignment.center,
-      children: [
-        Container(
-          height: 56,
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [appwritePink, Color(0xFFE91E63)],
-            ),
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: appwritePink.withOpacity(0.4),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: ElevatedButton.icon(
-            onPressed: () {
-              context.go(isAuthenticated ? '/dashboard' : '/signup');
-            },
-            icon: Icon(
-              isAuthenticated ? Icons.dashboard : Icons.rocket_launch,
-              size: 20,
-            ),
-            label: Text(
-              isAuthenticated ? 'Go to Dashboard' : 'Start Building',
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.transparent,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              padding: EdgeInsets.symmetric(horizontal: _isMobile ? 24 : 32),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          ),
-        ),
-        if (!isAuthenticated)
-          Container(
-            height: 56,
-            child: OutlinedButton.icon(
-              onPressed: () => context.go('/login'),
-              icon: const Icon(
-                Icons.play_circle_outline,
-                size: 20,
-              ),
-              label: const Text(
-                'Watch Demo',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.white,
-                side: const BorderSide(color: appwriteBorder),
-                padding: EdgeInsets.symmetric(horizontal: _isMobile ? 24 : 32),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildHeroPreview() {
-    return Container(
-      constraints: BoxConstraints(
-        maxWidth: _isMobile ? double.infinity : 800,
-        maxHeight: _isMobile ? 300 : 500,
-      ),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: appwriteBorder,
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: appwritePink.withOpacity(0.2),
-            blurRadius: 40,
-            offset: const Offset(0, 20),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                appwriteDarkGray,
-                appwriteBlack,
-              ],
-            ),
-          ),
-          child: const LandingStorePreview(),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFeaturesSection() {
+  Widget _buildPricingSection() {
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: _isMobile ? 20 : 80,
-        vertical: _isMobile ? 80 : 120,
+        vertical: _isMobile ? 60 : 100,
       ),
       child: AnimatedBuilder(
-        animation: _featuresSlideAnimation,
+        animation: _pricingSlideAnimation,
         builder: (context, child) {
           return Transform.translate(
-            offset: Offset(0, _featuresSlideAnimation.value),
+            offset: Offset(0, _pricingSlideAnimation.value),
             child: Column(
               children: [
-                Text(
-                  'Everything you need to succeed',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: _isMobile ? 32 : 48,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Container(
-                  constraints: const BoxConstraints(maxWidth: 600),
-                  child: Text(
-                    'Powerful features designed to help you create, manage, and scale your online business.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: _isMobile ? 16 : 18,
-                      color: Colors.white.withOpacity(0.7),
-                      height: 1.6,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 60),
-                GridView.count(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  crossAxisCount: _isMobile ? 2 : 3,
-                  mainAxisSpacing: _isMobile ? 16 : 32,
-                  crossAxisSpacing: _isMobile ? 16 : 32,
-                  childAspectRatio: _isMobile ? 1.3 : 1.0,
-                  children: [
-                    _buildFeatureCard(
-                      icon: Icons.speed,
-                      title: 'Lightning Fast',
-                      description: 'Deploy in under 5 minutes with our optimized platform.',
-                    ),
-                    _buildFeatureCard(
-                      icon: Icons.palette,
-                      title: 'Beautiful Designs',
-                      description: 'Professional templates that convert visitors.',
-                    ),
-                    _buildFeatureCard(
-                      icon: Icons.analytics,
-                      title: 'Real-time Analytics',
-                      description: 'Track performance with detailed insights.',
-                    ),
-                    _buildFeatureCard(
-                      icon: Icons.payment,
-                      title: 'Secure Payments',
-                      description: 'Accept payments safely with integrated solutions.',
-                    ),
-                    _buildFeatureCard(
-                      icon: Icons.mobile_friendly,
-                      title: 'Mobile Optimized',
-                      description: 'Perfect on every device, automatically.',
-                    ),
-                    _buildFeatureCard(
-                      icon: Icons.support_agent,
-                      title: '24/7 Support',
-                      description: 'Get help anytime from our expert team.',
-                    ),
-                  ],
-                ),
+                _isMobile
+                    ? Column(
+                        children: [
+                          _buildPricingCard(
+                            title: 'Free',
+                            price: '\$0',
+                            period: 'forever',
+                            description: 'Perfect for getting started',
+                            features: [
+                              'Up to 10 products',
+                              'Basic store customization',
+                              'Email support',
+                              'StorePe branding',
+                            ],
+                            isPopular: false,
+                            buttonText: 'Get Started',
+                          ),
+                          const SizedBox(height: 24),
+                          _buildPricingCard(
+                            title: 'Pro',
+                            price: '\$29',
+                            period: 'per month',
+                            description: 'For growing businesses',
+                            features: [
+                              'Unlimited products',
+                              'Advanced customization',
+                              'Priority support',
+                              'Remove StorePe branding',
+                              'Analytics dashboard',
+                              'Custom domain',
+                            ],
+                            isPopular: true,
+                            buttonText: 'Start Free Trial',
+                          ),
+                          const SizedBox(height: 24),
+                          _buildPricingCard(
+                            title: 'Enterprise',
+                            price: 'Custom',
+                            period: 'pricing',
+                            description: 'For large businesses',
+                            features: [
+                              'Everything in Pro',
+                              'Advanced analytics',
+                              'API access',
+                              'Dedicated support',
+                              'Custom integrations',
+                              'SLA guarantee',
+                            ],
+                            isPopular: false,
+                            buttonText: 'Contact Sales',
+                          ),
+                        ],
+                      )
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            flex: 1,
+                            child: _buildPricingCard(
+                              title: 'Free',
+                              price: '\$0',
+                              period: 'forever',
+                              description: 'Perfect for getting started',
+                              features: [
+                                'Up to 10 products',
+                                'Basic store customization',
+                                'Email support',
+                                'StorePe branding',
+                              ],
+                              isPopular: false,
+                              buttonText: 'Get Started',
+                            ),
+                          ),
+                          const SizedBox(width: 24),
+                          Expanded(
+                            flex: 1,
+                            child: _buildPricingCard(
+                              title: 'Pro',
+                              price: '\$29',
+                              period: 'per month',
+                              description: 'For growing businesses',
+                              features: [
+                                'Unlimited products',
+                                'Advanced customization',
+                                'Priority support',
+                                'Remove StorePe branding',
+                                'Analytics dashboard',
+                                'Custom domain',
+                              ],
+                              isPopular: true,
+                              buttonText: 'Start Free Trial',
+                            ),
+                          ),
+                          const SizedBox(width: 24),
+                          Expanded(
+                            flex: 1,
+                            child: _buildPricingCard(
+                              title: 'Enterprise',
+                              price: 'Custom',
+                              period: 'pricing',
+                              description: 'For large businesses',
+                              features: [
+                                'Everything in Pro',
+                                'Advanced analytics',
+                                'API access',
+                                'Dedicated support',
+                                'Custom integrations',
+                                'SLA guarantee',
+                              ],
+                              isPopular: false,
+                              buttonText: 'Contact Sales',
+                            ),
+                          ),
+                        ],
+                      ),
               ],
             ),
           );
@@ -555,94 +441,172 @@ class _LandingScreenState extends ConsumerState<LandingScreen>
     );
   }
 
-  Widget _buildFeatureCard({
-    required IconData icon,
+  Widget _buildPricingCard({
     required String title,
+    required String price,
+    required String period,
     required String description,
+    required List<String> features,
+    required bool isPopular,
+    required String buttonText,
   }) {
     return Container(
-      padding: EdgeInsets.all(_isMobile ? 12 : 32),
+      padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: appwriteDarkGray,
+        color: isPopular ? appwriteDarkGray : appwriteDarkGray.withOpacity(0.8),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: appwriteBorder,
-          width: 1,
+          color: isPopular ? appwritePink : appwriteBorder,
+          width: isPopular ? 2 : 1,
         ),
+        boxShadow: isPopular
+            ? [
+                BoxShadow(
+                  color: appwritePink.withOpacity(0.2),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                ),
+              ]
+            : null,
       ),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: appwritePink.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+          if (isPopular)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: appwritePink,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Text(
+                'Most Popular',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
-            child: Icon(
-              icon,
-              color: appwritePink,
-              size: _isMobile ? 20 : 32,
+          const SizedBox(height: 24),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
             ),
           ),
-          SizedBox(height: _isMobile ? 8 : 24),
-          _isMobile
-              ? FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                )
-              : Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                  textAlign: TextAlign.center,
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Text(
+                price,
+                style: TextStyle(
+                  fontSize: 48,
+                  fontWeight: FontWeight.bold,
+                  color: isPopular ? appwritePink : Colors.white,
                 ),
-          SizedBox(height: _isMobile ? 4 : 12),
-          _isMobile
-              ? Expanded(
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                period,
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.white.withOpacity(0.7),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            description,
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.white.withOpacity(0.7),
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 32),
+          Column(
+            children: features.map((feature) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.check_circle,
+                    color: appwritePink,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
                     child: Text(
-                      description,
+                      feature,
                       style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.white.withOpacity(0.7),
-                        height: 1.2,
+                        fontSize: 14,
+                        color: Colors.white.withOpacity(0.9),
                       ),
-                      textAlign: TextAlign.center,
                     ),
                   ),
-                )
-              : Text(
-                  description,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.white.withOpacity(0.7),
-                    height: 1.2,
-                  ),
-                  textAlign: TextAlign.center,
+                ],
+              ),
+            )).toList(),
+          ),
+          const SizedBox(height: 32),
+          Container(
+            width: double.infinity,
+            height: 48,
+            decoration: BoxDecoration(
+              gradient: isPopular
+                  ? const LinearGradient(
+                      colors: [appwritePink, Color(0xFFE91E63)],
+                    )
+                  : null,
+              borderRadius: BorderRadius.circular(8),
+              border: !isPopular
+                  ? Border.all(
+                      color: appwriteBorder,
+                      width: 1,
+                    )
+                  : null,
+            ),
+            child: ElevatedButton(
+              onPressed: () {
+                if (buttonText == 'Contact Sales') {
+                  // Handle contact sales
+                } else {
+                  context.go('/signup');
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: isPopular ? Colors.transparent : appwriteDarkGray,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
                 ),
+              ),
+              child: Text(
+                buttonText,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildStatsSection() {
+  Widget _buildComparisonSection() {
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: _isMobile ? 20 : 80,
-        vertical: _isMobile ? 60 : 80,
+        vertical: _isMobile ? 60 : 100,
       ),
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -658,96 +622,191 @@ class _LandingScreenState extends ConsumerState<LandingScreen>
       child: Column(
         children: [
           Text(
-            'Trusted by thousands of businesses',
+            'Why Choose StorePe?',
             style: TextStyle(
-              fontSize: _isMobile ? 24 : 32,
+              fontSize: _isMobile ? 32 : 48,
               fontWeight: FontWeight.bold,
               color: Colors.white,
             ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 60),
-          GridView.count(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            crossAxisCount: _isMobile ? 2 : 4,
-            mainAxisSpacing: _isMobile ? 16 : 32,
-            crossAxisSpacing: _isMobile ? 16 : 32,
-            childAspectRatio: _isMobile ? 1.3 : 1.0,
-            children: [
-              _buildStatCard('10K+', 'Active Stores'),
-              _buildStatCard('99.9%', 'Uptime'),
-              _buildStatCard('\$50M+', 'Revenue Generated'),
-              _buildStatCard('4.9/5', 'Customer Rating'),
-            ],
+          _isMobile
+              ? Column(
+                  children: [
+                    _buildComparisonItem(
+                      icon: Icons.speed,
+                      title: '5-Minute Setup',
+                      description: 'Launch your store faster than traditional platforms.',
+                    ),
+                    const SizedBox(height: 32),
+                    _buildComparisonItem(
+                      icon: Icons.attach_money,
+                      title: 'No Hidden Fees',
+                      description: 'Transparent pricing with no surprise charges.',
+                    ),
+                    const SizedBox(height: 32),
+                    _buildComparisonItem(
+                      icon: Icons.support,
+                      title: '24/7 Support',
+                      description: 'Get help whenever you need it from our expert team.',
+                    ),
+                  ],
+                )
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: _buildComparisonItem(
+                        icon: Icons.speed,
+                        title: '5-Minute Setup',
+                        description: 'Launch your store faster than traditional platforms.',
+                      ),
+                    ),
+                    const SizedBox(width: 40),
+                    Expanded(
+                      child: _buildComparisonItem(
+                        icon: Icons.attach_money,
+                        title: 'No Hidden Fees',
+                        description: 'Transparent pricing with no surprise charges.',
+                      ),
+                    ),
+                    const SizedBox(width: 40),
+                    Expanded(
+                      child: _buildComparisonItem(
+                        icon: Icons.support,
+                        title: '24/7 Support',
+                        description: 'Get help whenever you need it from our expert team.',
+                      ),
+                    ),
+                  ],
+                ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildComparisonItem({
+    required IconData icon,
+    required String title,
+    required String description,
+  }) {
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: appwritePink.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Icon(
+            icon,
+            color: appwritePink,
+            size: 40,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          description,
+          style: TextStyle(
+            fontSize: 16,
+            color: Colors.white.withOpacity(0.8),
+            height: 1.5,
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFAQSection() {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: _isMobile ? 20 : 80,
+        vertical: _isMobile ? 60 : 100,
+      ),
+      child: Column(
+        children: [
+          Text(
+            'Frequently Asked Questions',
+            style: TextStyle(
+              fontSize: _isMobile ? 32 : 48,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 60),
+          _buildFAQItem(
+            question: 'Can I change plans anytime?',
+            answer: 'Yes, you can upgrade or downgrade your plan at any time. Changes take effect immediately.',
+          ),
+          const SizedBox(height: 24),
+          _buildFAQItem(
+            question: 'Is there a free trial?',
+            answer: 'Yes, our Pro plan comes with a 14-day free trial. No credit card required to start.',
+          ),
+          const SizedBox(height: 24),
+          _buildFAQItem(
+            question: 'What payment methods do you accept?',
+            answer: 'We accept all major credit cards, PayPal, and bank transfers for Enterprise plans.',
+          ),
+          const SizedBox(height: 24),
+          _buildFAQItem(
+            question: 'Can I cancel anytime?',
+            answer: 'Yes, you can cancel your subscription at any time. No cancellation fees or penalties.',
           ),
         ],
       ),
     );
   }
 
-  Widget _buildStatCard(String value, String label) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Expanded(
-          flex: 2,
-          child: _isMobile
-              ? FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    value,
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: appwritePink,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                )
-              : FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    value,
-                    style: const TextStyle(
-                      fontSize: 48,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFFFD366E),
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
+  Widget _buildFAQItem({
+    required String question,
+    required String answer,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: appwriteDarkGray,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: appwriteBorder,
+          width: 1,
         ),
-        SizedBox(height: _isMobile ? 4 : 8),
-        Expanded(
-          flex: 1,
-          child: _isMobile
-              ? FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: Colors.white.withOpacity(0.7),
-                      fontWeight: FontWeight.w500,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                )
-              : FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    label,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: Color(0xFFFFFFFF),
-                      fontWeight: FontWeight.w500,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-        ),
-      ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            question,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            answer,
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.white.withOpacity(0.8),
+              height: 1.5,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -777,7 +836,7 @@ class _LandingScreenState extends ConsumerState<LandingScreen>
         child: Column(
           children: [
             Text(
-              'Ready to start selling?',
+              'Ready to Get Started?',
               style: TextStyle(
                 fontSize: _isMobile ? 32 : 48,
                 fontWeight: FontWeight.bold,
@@ -789,7 +848,7 @@ class _LandingScreenState extends ConsumerState<LandingScreen>
             Container(
               constraints: const BoxConstraints(maxWidth: 600),
               child: Text(
-                'Join thousands of successful businesses. Create your online store today and start selling within minutes.',
+                'Join thousands of businesses already using StorePe. Start your free trial today.',
                 style: TextStyle(
                   fontSize: _isMobile ? 16 : 18,
                   color: Colors.white.withOpacity(0.8),
@@ -820,7 +879,7 @@ class _LandingScreenState extends ConsumerState<LandingScreen>
                 },
                 icon: const Icon(Icons.rocket_launch, size: 20),
                 label: const Text(
-                  'Get Started Free',
+                  'Start Free Trial',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,

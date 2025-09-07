@@ -229,7 +229,7 @@ class _LandingStorePreviewState extends State<LandingStorePreview>
                                 ),
                                 const SizedBox(width: 12),
                                 const Text(
-                                  'PopStore',
+                                  'StorePe',
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 16,

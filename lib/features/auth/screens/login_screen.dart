@@ -1,19 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import '../../../providers/auth_provider.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen>
-    with TickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
-  late AnimationController _scaleController;
-  late Animation<double> _scaleAnimation;
+class _LoginScreenState extends ConsumerState<LoginScreen> {
+  // Appwrite theme colors
+  static const Color appwritePink = Color(0xFFFD366E);
+  static const Color appwriteBlack = Color(0xFF000000);
+  static const Color appwriteDarkGray = Color(0xFF0F0F0F);
+  static const Color appwriteBorder = Color(0xFF1A1A1A);
 
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -24,32 +27,7 @@ class _LoginScreenState extends State<LoginScreen>
   bool _rememberMe = false;
 
   @override
-  void initState() {
-    super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 1000),
-      vsync: this,
-    );
-    _scaleController = AnimationController(
-      duration: const Duration(milliseconds: 600),
-      vsync: this,
-    );
-
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
-    );
-    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
-      CurvedAnimation(parent: _scaleController, curve: Curves.elasticOut),
-    );
-
-    _animationController.forward();
-    _scaleController.forward();
-  }
-
-  @override
   void dispose() {
-    _animationController.dispose();
-    _scaleController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -58,109 +36,209 @@ class _LoginScreenState extends State<LoginScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF0F172A),
-              Color(0xFF1E293B),
-              Color(0xFF334155),
-            ],
-          ),
+      backgroundColor: appwriteBlack,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
         ),
-        child: SafeArea(
-          child: FadeTransition(
-            opacity: _fadeAnimation,
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: appwritePink,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                Icons.storefront,
+                size: 20,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Text(
+              'StorePe',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+      extendBodyBehindAppBar: true,
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isDesktop = constraints.maxWidth >= 1024;
+          final isTablet = constraints.maxWidth >= 768 && constraints.maxWidth < 1024;
+
+          if (isDesktop) {
+            return Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    appwriteBlack,
+                    appwriteDarkGray,
+                    appwriteBlack,
+                  ],
+                  stops: const [0.0, 0.5, 1.0],
+                ),
+              ),
+              child: SingleChildScrollView(
+                child: Row(
                   children: [
-                    const SizedBox(height: 40),
-                    _buildHeader(),
-                    const SizedBox(height: 48),
-                    _buildLoginForm(),
-                    const SizedBox(height: 32),
-                    _buildSocialLogin(),
-                    const SizedBox(height: 32),
-                    _buildFooter(),
-                    const SizedBox(height: 100),
+                    // Left side - Form
+                    Expanded(
+                      flex: 1,
+                      child: Container(
+                        constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                        padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 60),
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              _buildHeader(),
+                              const SizedBox(height: 40),
+                              _buildLoginForm(),
+                              const SizedBox(height: 24),
+                              _buildFooter(),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    // Right side - Image
+                    Expanded(
+                      flex: 1,
+                      child: Container(
+                        constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              appwriteDarkGray,
+                              appwriteBlack,
+                            ],
+                          ),
+                        ),
+                        child: Center(
+                          child: Container(
+                            margin: const EdgeInsets.all(40),
+                            constraints: const BoxConstraints(maxWidth: 500, maxHeight: 500),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(24),
+                              border: Border.all(
+                                color: appwriteBorder,
+                                width: 2,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: appwritePink.withOpacity(0.2),
+                                  blurRadius: 40,
+                                  offset: const Offset(0, 20),
+                                ),
+                              ],
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(24),
+                              child: Image.asset(
+                                'assets/login.png',
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Container(
+                                    color: appwriteDarkGray,
+                                    child: const Center(
+                                      child: Icon(
+                                        Icons.image_not_supported,
+                                        color: Colors.white54,
+                                        size: 80,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
-            ),
-          ),
-        ),
+            );
+          } else {
+            // Mobile/Tablet layout - optimized for minimal scrolling
+            return Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    appwriteBlack,
+                    appwriteDarkGray,
+                    appwriteBlack,
+                  ],
+                  stops: const [0.0, 0.5, 1.0],
+                ),
+              ),
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isTablet ? 60 : 20,
+                    vertical: 20,
+                  ),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const SizedBox(height: 20),
+                        _buildHeader(),
+                        const SizedBox(height: 32),
+                        _buildLoginForm(),
+                        const SizedBox(height: 24),
+                        _buildFooter(),
+                        const SizedBox(height: 20),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }
+        },
       ),
     );
   }
 
   Widget _buildHeader() {
-    return ScaleTransition(
-      scale: _scaleAnimation,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFFFD366E), Color(0xFF7C3AED)],
-              ),
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFFFD366E).withOpacity(0.3),
-                  blurRadius: 20,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: const Icon(
-              Icons.storefront,
-              color: Colors.white,
-              size: 32,
-            ),
-          ),
-          const SizedBox(height: 24),
-          const Text(
-            'Welcome Back!',
-            style: TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Sign in to your seller account',
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.white.withOpacity(0.7),
-            ),
-          ),
-        ],
-      ),
-    );
+    return const SizedBox.shrink();
   }
 
   Widget _buildLoginForm() {
     return Container(
-      padding: const EdgeInsets.all(32),
+      constraints: const BoxConstraints(maxWidth: 500),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(24),
+        color: appwriteDarkGray,
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: Colors.white.withOpacity(0.1),
+          color: appwriteBorder,
+          width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: appwritePink.withOpacity(0.1),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -185,7 +263,7 @@ class _LoginScreenState extends State<LoginScreen>
               color: Colors.white.withOpacity(0.6),
             ),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 20),
 
           // Email Field
           _buildModernTextField(
@@ -204,7 +282,7 @@ class _LoginScreenState extends State<LoginScreen>
               return null;
             },
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
 
           // Password Field
           _buildModernTextField(
@@ -234,7 +312,7 @@ class _LoginScreenState extends State<LoginScreen>
               return null;
             },
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
 
           // Remember Me & Forgot Password
           Row(
@@ -246,7 +324,7 @@ class _LoginScreenState extends State<LoginScreen>
                     _rememberMe = value ?? false;
                   });
                 },
-                activeColor: const Color(0xFFFD366E),
+                activeColor: appwritePink,
                 checkColor: Colors.white,
               ),
               Text(
@@ -265,7 +343,7 @@ class _LoginScreenState extends State<LoginScreen>
                 child: const Text(
                   'Forgot Password?',
                   style: TextStyle(
-                    color: Color(0xFFFD366E),
+                    color: appwritePink,
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
                   ),
@@ -273,32 +351,32 @@ class _LoginScreenState extends State<LoginScreen>
               ),
             ],
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 20),
 
           // Login Button
           Container(
             width: double.infinity,
             height: 56,
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFFFD366E), Color(0xFF7C3AED)],
+              gradient: LinearGradient(
+                colors: [appwritePink, const Color(0xFFE91E63)],
               ),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFFFD366E).withOpacity(0.4),
+                  color: appwritePink.withOpacity(0.3),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),
               ],
             ),
             child: ElevatedButton(
-              onPressed: _isLoading ? null : _handleLogin,
+              onPressed: _isLoading ? null : () => _handleLogin(ref),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.transparent,
                 shadowColor: Colors.transparent,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(12),
                 ),
               ),
               child: _isLoading
@@ -325,65 +403,6 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
-  Widget _buildSocialLogin() {
-    return Column(
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: Divider(
-                color: Colors.white.withOpacity(0.2),
-                thickness: 1,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Text(
-                'Or continue with',
-                style: TextStyle(
-                  color: Colors.white.withOpacity(0.6),
-                  fontSize: 14,
-                ),
-              ),
-            ),
-            Expanded(
-              child: Divider(
-                color: Colors.white.withOpacity(0.2),
-                thickness: 1,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 24),
-        Row(
-          children: [
-            Expanded(
-              child: _buildSocialButton(
-                icon: Icons.g_mobiledata,
-                label: 'Google',
-                onPressed: () {
-                  // Handle Google login
-                  HapticFeedback.lightImpact();
-                },
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: _buildSocialButton(
-                icon: Icons.facebook,
-                label: 'Facebook',
-                onPressed: () {
-                  // Handle Facebook login
-                  HapticFeedback.lightImpact();
-                },
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
   Widget _buildFooter() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -397,12 +416,12 @@ class _LoginScreenState extends State<LoginScreen>
         ),
         TextButton(
           onPressed: () {
-            Navigator.pushNamed(context, '/signup');
+            context.go('/signup');
           },
           child: const Text(
             'Sign Up',
             style: TextStyle(
-              color: Color(0xFFFD366E),
+              color: appwritePink,
               fontSize: 16,
               fontWeight: FontWeight.bold,
             ),
@@ -424,10 +443,11 @@ class _LoginScreenState extends State<LoginScreen>
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: appwriteDarkGray,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Colors.white.withOpacity(0.1),
+          color: appwriteBorder,
+          width: 1,
         ),
       ),
       child: TextFormField(
@@ -454,62 +474,40 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
-  Widget _buildSocialButton({
-    required IconData icon,
-    required String label,
-    required VoidCallback onPressed,
-  }) {
-    return Container(
-      height: 48,
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Colors.white.withOpacity(0.1),
-        ),
-      ),
-      child: TextButton.icon(
-        onPressed: onPressed,
-        icon: Icon(icon, color: Colors.white.withOpacity(0.8)),
-        label: Text(
-          label,
-          style: TextStyle(
-            color: Colors.white.withOpacity(0.8),
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        style: TextButton.styleFrom(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _handleLogin() async {
+  void _handleLogin(WidgetRef ref) async {
     if (_formKey.currentState?.validate() ?? false) {
       setState(() {
         _isLoading = true;
       });
 
-      // Simulate login process
-      await Future.delayed(const Duration(seconds: 2));
+      try {
+        await ref.read(authProvider.notifier).signIn(_emailController.text, _passwordController.text);
 
-      setState(() {
-        _isLoading = false;
-      });
+        setState(() {
+          _isLoading = false;
+        });
 
-      // Navigate to dashboard
-      Navigator.pushReplacementNamed(context, '/dashboard');
+        // Navigate to dashboard
+        context.go('/dashboard');
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('🎉 Welcome back! Login successful.'),
-          backgroundColor: Color(0xFF10B981),
-        ),
-      );
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('🎉 Welcome back! Login successful.'),
+            backgroundColor: appwritePink,
+          ),
+        );
+      } catch (e) {
+        setState(() {
+          _isLoading = false;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Login failed: ${e.toString()}'),
+            backgroundColor: const Color(0xFFEF4444),
+          ),
+        );
+      }
     }
   }
 }

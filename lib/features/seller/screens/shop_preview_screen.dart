@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../../services/appwrite_service.dart';
+import '../../../models/shop_model.dart';
+import '../../../models/product_model.dart';
 
 class ShopPreviewScreen extends StatefulWidget {
-  const ShopPreviewScreen({Key? key}) : super(key: key);
+  final String? shopSlug;
+  const ShopPreviewScreen({Key? key, this.shopSlug}) : super(key: key);
 
   @override
   State<ShopPreviewScreen> createState() => _ShopPreviewScreenState();
@@ -10,79 +14,17 @@ class ShopPreviewScreen extends StatefulWidget {
 
 class _ShopPreviewScreenState extends State<ShopPreviewScreen>
     with TickerProviderStateMixin {
+  Shop? _shop;
+  List<Product> _products = [];
+  bool _isLoading = true;
+  String? _error;
   String _selectedTheme = 'Midnight Pro';
-  String _shopName = 'Stellar Shop';
-  String _shopUrl = 'stellar-shop';
   int _currentTab = 0;
   late TabController _tabController;
   late AnimationController _fadeController;
   late AnimationController _slideController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
-
-  // Mock data for shop preview with stunning visuals
-  final List<Map<String, dynamic>> _products = [
-    {
-      'name': 'Premium Wireless Headphones',
-      'price': '\$299.99',
-      'originalPrice': '\$399.99',
-      'rating': 4.8,
-      'image': '🎧',
-      'category': 'Electronics',
-      'badge': 'Best Seller',
-      'discount': '25% OFF'
-    },
-    {
-      'name': 'Organic Coffee Blend',
-      'price': '\$24.99',
-      'originalPrice': '\$34.99',
-      'rating': 4.9,
-      'image': '☕',
-      'category': 'Food & Beverage',
-      'badge': 'Premium',
-      'discount': '30% OFF'
-    },
-    {
-      'name': 'Smart Fitness Watch',
-      'price': '\$199.99',
-      'originalPrice': '\$249.99',
-      'rating': 4.7,
-      'image': '⌚',
-      'category': 'Fitness',
-      'badge': 'New',
-      'discount': '20% OFF'
-    },
-    {
-      'name': 'Luxury Leather Wallet',
-      'price': '\$89.99',
-      'originalPrice': '\$129.99',
-      'rating': 4.6,
-      'image': '👛',
-      'category': 'Fashion',
-      'badge': 'Limited',
-      'discount': '31% OFF'
-    },
-    {
-      'name': 'Wireless Earbuds Pro',
-      'price': '\$149.99',
-      'originalPrice': '\$199.99',
-      'rating': 4.9,
-      'image': '🎵',
-      'category': 'Electronics',
-      'badge': 'Hot',
-      'discount': '25% OFF'
-    },
-    {
-      'name': 'Gaming Mechanical Keyboard',
-      'price': '\$179.99',
-      'originalPrice': '\$229.99',
-      'rating': 4.8,
-      'image': '⌨️',
-      'category': 'Gaming',
-      'badge': 'Pro',
-      'discount': '22% OFF'
-    },
-  ];
 
   // Premium theme definitions with stunning gradients and colors (same as create shop)
   final Map<String, ThemeData> _themes = {
@@ -220,9 +162,51 @@ class _ShopPreviewScreenState extends State<ShopPreviewScreen>
       });
     });
     
-    // Start animations
-    _fadeController.forward();
-    _slideController.forward();
+    _loadShopData();
+  }
+
+  Future<void> _loadShopData() async {
+    try {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+
+      Shop? shop;
+      if (widget.shopSlug != null) {
+        shop = await AppwriteService.getShopBySlug(widget.shopSlug!);
+      } else {
+        shop = await AppwriteService.getCurrentUserShop();
+      }
+
+      if (shop == null) {
+        setState(() {
+          _error = 'Shop not found';
+          _isLoading = false;
+        });
+        return;
+      }
+
+      _shop = shop;
+      _selectedTheme = shop.theme;
+
+      // Get products for this shop
+      final products = await AppwriteService.getProductsByShop(shop.id);
+      _products = products;
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      // Start animations
+      _fadeController.forward();
+      _slideController.forward();
+    } catch (e) {
+      setState(() {
+        _error = 'Failed to load shop data: $e';
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -235,6 +219,50 @@ class _ShopPreviewScreenState extends State<ShopPreviewScreen>
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        backgroundColor: const Color(0xFF0F172A),
+        body: Center(
+          child: CircularProgressIndicator(
+            color: Color(0xFFFD366E),
+          ),
+        ),
+      );
+    }
+
+    if (_error != null) {
+      return Scaffold(
+        backgroundColor: const Color(0xFF0F172A),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.error_outline,
+                color: Colors.white.withOpacity(0.7),
+                size: 64,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                _error!,
+                style: const TextStyle(color: Colors.white),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: _loadShopData,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFD366E),
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     final currentTheme = _themes[_selectedTheme] ?? _themes['Midnight Pro']!;
 
     return Theme(
@@ -522,11 +550,36 @@ class _ShopPreviewScreenState extends State<ShopPreviewScreen>
                     final isSelected = _selectedTheme == themeName;
                     
                     return GestureDetector(
-                      onTap: () {
+                      onTap: () async {
                         HapticFeedback.mediumImpact();
                         setState(() {
                           _selectedTheme = themeName;
                         });
+                        
+                        // Save theme to database
+                        if (_shop != null) {
+                          try {
+                            await AppwriteService.updateShop(_shop!.id, {
+                              'theme': themeName,
+                            });
+                            setState(() {
+                              _shop = _shop!.copyWith(theme: themeName);
+                            });
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Theme updated to $themeName'),
+                                backgroundColor: const Color(0xFF10B981),
+                              ),
+                            );
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Failed to update theme: $e'),
+                                backgroundColor: const Color(0xFFEF4444),
+                              ),
+                            );
+                          }
+                        }
                       },
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 300),
@@ -786,7 +839,7 @@ class _ShopPreviewScreenState extends State<ShopPreviewScreen>
                   elevation: 0,
                   automaticallyImplyLeading: false,
                   title: Text(
-                    _shopName,
+                    _shop?.name ?? 'Shop Preview',
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -882,7 +935,7 @@ class _ShopPreviewScreenState extends State<ShopPreviewScreen>
                                       radius: 24,
                                       backgroundColor: theme.colorScheme.primary,
                                       child: Text(
-                                        _shopName.isNotEmpty ? _shopName[0].toUpperCase() : 'S',
+                                        _shop?.name.isNotEmpty ?? false ? _shop!.name[0].toUpperCase() : 'S',
                                         style: const TextStyle(
                                           fontSize: 18,
                                           color: Colors.white,
@@ -893,7 +946,7 @@ class _ShopPreviewScreenState extends State<ShopPreviewScreen>
                                   ),
                                   const SizedBox(height: 12),
                                   Text(
-                                    'Welcome to $_shopName',
+                                    'Welcome to ${_shop?.name ?? 'Shop'}',
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 20,
@@ -908,7 +961,7 @@ class _ShopPreviewScreenState extends State<ShopPreviewScreen>
                                       borderRadius: BorderRadius.circular(16),
                                     ),
                                     child: Text(
-                                      'shopurl.com/$_shopUrl',
+                                      'shopurl.com/${_shop?.slug ?? 'shop'}',
                                       style: TextStyle(
                                         color: Colors.white.withOpacity(0.9),
                                         fontSize: 12,
@@ -1263,7 +1316,9 @@ class _ShopPreviewScreenState extends State<ShopPreviewScreen>
     );
   }
 
-  Widget _buildProductCard(Map<String, dynamic> product, ThemeData theme) {
+  Widget _buildProductCard(Product product, ThemeData theme) {
+    final hasSale = product.salePrice != null && product.salePrice! < product.price;
+
     return Container(
       decoration: BoxDecoration(
         color: theme.brightness == Brightness.dark 
@@ -1300,56 +1355,17 @@ class _ShopPreviewScreenState extends State<ShopPreviewScreen>
                   ],
                 ),
               ),
-              child: Stack(
-                children: [
-                  Center(
-                    child: Text(
-                      product['image'],
-                      style: const TextStyle(fontSize: 32),
-                    ),
-                  ),
-                  if (product['badge'] != null)
-                    Positioned(
-                      top: 6,
-                      left: 6,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.secondary,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text(
-                          product['badge'],
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 8,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+              child: product.images.isNotEmpty
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.network(
+                        product.images.first,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                            const Icon(Icons.image, color: Colors.white, size: 40),
                       ),
-                    ),
-                  if (product['discount'] != null)
-                    Positioned(
-                      top: 6,
-                      right: 6,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: Colors.red,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          product['discount'],
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 8,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
+                    )
+                  : const Icon(Icons.inventory, color: Colors.white, size: 40),
             ),
             
             // Product Info
@@ -1361,7 +1377,7 @@ class _ShopPreviewScreenState extends State<ShopPreviewScreen>
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      product['name'],
+                      product.name,
                       style: TextStyle(
                         color: theme.brightness == Brightness.dark ? Colors.white : Colors.black87,
                         fontWeight: FontWeight.bold,
@@ -1374,7 +1390,7 @@ class _ShopPreviewScreenState extends State<ShopPreviewScreen>
                     const SizedBox(height: 2),
                     
                     Text(
-                      product['category'],
+                      product.category,
                       style: TextStyle(
                         color: theme.brightness == Brightness.dark ? Colors.white60 : Colors.black54,
                         fontSize: 10,
@@ -1383,13 +1399,17 @@ class _ShopPreviewScreenState extends State<ShopPreviewScreen>
                     
                     const Spacer(),
                     
-                    // Rating
+                    // Stock Status
                     Row(
                       children: [
-                        Icon(Icons.star, color: Colors.amber, size: 12),
+                        Icon(
+                          product.stock > 0 ? Icons.check_circle : Icons.cancel,
+                          color: product.stock > 0 ? Colors.green : Colors.red,
+                          size: 12,
+                        ),
                         const SizedBox(width: 2),
                         Text(
-                          '${product['rating']}',
+                          product.stock > 0 ? 'In stock' : 'Out of stock',
                           style: TextStyle(
                             color: theme.brightness == Brightness.dark ? Colors.white70 : Colors.black54,
                             fontSize: 10,
@@ -1404,17 +1424,17 @@ class _ShopPreviewScreenState extends State<ShopPreviewScreen>
                     Row(
                       children: [
                         Text(
-                          product['price'],
+                          '\$${product.price.toStringAsFixed(2)}',
                           style: TextStyle(
                             color: theme.colorScheme.primary,
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
                           ),
                         ),
-                        if (product['originalPrice'] != null) ...[
+                        if (hasSale) ...[
                           const SizedBox(width: 4),
                           Text(
-                            product['originalPrice'],
+                            '\$${product.salePrice!.toStringAsFixed(2)}',
                             style: TextStyle(
                               color: theme.brightness == Brightness.dark ? Colors.white60 : Colors.black54,
                               fontSize: 10,

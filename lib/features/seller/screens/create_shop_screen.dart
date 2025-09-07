@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../../services/appwrite_service.dart';
+import '../../../models/shop_model.dart';
 
 class CreateShopScreen extends StatefulWidget {
   const CreateShopScreen({Key? key}) : super(key: key);
@@ -234,15 +236,50 @@ class _CreateShopScreenState extends State<CreateShopScreen>
     _progressController.forward();
   }
 
-  @override
-  void dispose() {
-    _animationController.dispose();
-    _progressController.dispose();
-    _pageController.dispose();
-    for (var controller in _controllers) {
-      controller.dispose();
+  Future<void> _createShop() async {
+    if (_shopName.isEmpty || _shopSlug.isEmpty || _shopEmail.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill in all required fields')),
+      );
+      return;
     }
-    super.dispose();
+
+    try {
+      // Get current user
+      final user = await AppwriteService.getCurrentUser();
+      if (user == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('User not authenticated')),
+        );
+        return;
+      }
+
+      // Create shop
+      final shop = Shop(
+        id: '',
+        name: _shopName,
+        slug: _shopSlug,
+        description: _shopDescription,
+        email: _shopEmail,
+        phone: _shopPhone,
+        sellerId: user.$id,
+        theme: _selectedTheme,
+        createdAt: DateTime.now(),
+      );
+
+      final createdShop = await AppwriteService.createShop(shop);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Shop "${createdShop.name}" created successfully!')),
+      );
+
+      // Navigate to dashboard or shop management
+      Navigator.pushReplacementNamed(context, '/dashboard');
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to create shop: $e')),
+      );
+    }
   }
 
   @override
@@ -456,13 +493,7 @@ class _CreateShopScreenState extends State<CreateShopScreen>
                 label: Text(_currentStep == 2 ? 'Launch Shop' : 'Continue'),
                 onPressed: () {
                   if (_currentStep == 2) {
-                    // Launch shop logic here
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('🎉 Shop created successfully!'),
-                        backgroundColor: Color(0xFF10B981),
-                      ),
-                    );
+                    _createShop();
                   } else {
                     _pageController.nextPage(
                       duration: const Duration(milliseconds: 300),
