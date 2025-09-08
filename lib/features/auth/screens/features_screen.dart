@@ -18,6 +18,7 @@ class _FeaturesScreenState extends ConsumerState<FeaturesScreen>
   static const Color appwriteBlack = Color(0xFF000000);
   static const Color appwriteDarkGray = Color(0xFF0F0F0F);
   static const Color appwriteBorder = Color(0xFF1A1A1A);
+  static const Color appwriteGreen = Color(0xFF4CAF50);
 
   late AnimationController _heroAnimationController;
   late Animation<double> _heroFadeAnimation;
@@ -174,6 +175,39 @@ class _FeaturesScreenState extends ConsumerState<FeaturesScreen>
           ),
         ]
       ] : [
+        Container(
+          margin: const EdgeInsets.only(right: 16),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: appwriteGreen.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: appwriteGreen.withOpacity(0.3),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.psychology,
+                  color: appwriteGreen,
+                  size: 14,
+                ),
+                const SizedBox(width: 6),
+                const Text(
+                  'AI Coming Soon 🚀',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
         if (isAuthenticated) ...[
           Container(
             margin: const EdgeInsets.only(right: 16),
@@ -288,13 +322,51 @@ class _FeaturesScreenState extends ConsumerState<FeaturesScreen>
             // Subheading
             Container(
               constraints: const BoxConstraints(maxWidth: 600),
-              child: Text(
-                'Discover the powerful features that make StorePe the perfect platform for your online business. From AI-powered design to advanced analytics, we have everything you need.',
+              child: RichText(
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: _isMobile ? 18 : 20,
-                  color: Colors.white.withOpacity(0.8),
-                  height: 1.6,
+                text: TextSpan(
+                  style: TextStyle(
+                    fontSize: _isMobile ? 18 : 20,
+                    color: Colors.white.withOpacity(0.8),
+                    height: 1.6,
+                  ),
+                  children: [
+                    const TextSpan(
+                      text: 'Discover the powerful features that make StorePe the perfect platform for your online business. From ',
+                    ),
+                    TextSpan(
+                      text: 'AI-powered design',
+                      style: TextStyle(
+                        color: appwriteGreen,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    WidgetSpan(
+                      child: Container(
+                        margin: const EdgeInsets.only(left: 4, bottom: 2),
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: appwriteGreen.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: appwriteGreen.withOpacity(0.4),
+                            width: 1,
+                          ),
+                        ),
+                        child: Text(
+                          'Coming Soon',
+                          style: TextStyle(
+                            color: appwriteGreen,
+                            fontSize: _isMobile ? 10 : 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const TextSpan(
+                      text: ' to advanced analytics, we have everything you need.',
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -477,6 +549,8 @@ class _FeaturesScreenState extends ConsumerState<FeaturesScreen>
     required String title,
     required String description,
   }) {
+    bool isAIFeature = title.contains('AI');
+    
     return Container(
       padding: EdgeInsets.all(_isMobile ? 12 : 32),
       decoration: BoxDecoration(
@@ -487,69 +561,108 @@ class _FeaturesScreenState extends ConsumerState<FeaturesScreen>
           width: 1,
         ),
       ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+      child: Stack(
         children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: appwritePink.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              icon,
-              color: appwritePink,
-              size: _isMobile ? 20 : 32,
-            ),
-          ),
-          SizedBox(height: _isMobile ? 8 : 24),
-          _isMobile
-              ? FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                )
-              : Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                  textAlign: TextAlign.center,
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: appwritePink.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-          SizedBox(height: _isMobile ? 4 : 12),
-          _isMobile
-              ? Expanded(
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
+                child: Icon(
+                  icon,
+                  color: appwritePink,
+                  size: _isMobile ? 20 : 32,
+                ),
+              ),
+              SizedBox(height: _isMobile ? 8 : 24),
+              _isMobile
+                  ? FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    )
+                  : Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+              SizedBox(height: _isMobile ? 4 : 12),
+              _isMobile
+                  ? Expanded(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          description,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.white.withOpacity(0.7),
+                            height: 1.2,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    )
+                  : Text(
                       description,
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: 16,
                         color: Colors.white.withOpacity(0.7),
                         height: 1.2,
                       ),
                       textAlign: TextAlign.center,
                     ),
+            ],
+          ),
+          if (isAIFeature)
+            Positioned(
+              top: 8,
+              right: 8,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: appwriteGreen.withOpacity(0.9),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: appwriteGreen,
+                    width: 1,
                   ),
-                )
-              : Text(
-                  description,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.white.withOpacity(0.7),
-                    height: 1.2,
-                  ),
-                  textAlign: TextAlign.center,
                 ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.psychology,
+                      color: Colors.white,
+                      size: 10,
+                    ),
+                    const SizedBox(width: 2),
+                    const Text(
+                      'AI',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
         ],
       ),
     );

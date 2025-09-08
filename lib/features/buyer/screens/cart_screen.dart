@@ -5,7 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../../providers/cart_provider.dart';
 
 class CartScreen extends ConsumerStatefulWidget {
-  const CartScreen({Key? key}) : super(key: key);
+  final String? shopSlug;
+  const CartScreen({Key? key, this.shopSlug}) : super(key: key);
 
   @override
   ConsumerState<CartScreen> createState() => _CartScreenState();
@@ -148,11 +149,6 @@ class _CartScreenState extends ConsumerState<CartScreen>
           color: theme.brightness == Brightness.dark ? Colors.white : textColor,
         ),
       ),
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back),
-        onPressed: () => Navigator.pop(context),
-        color: theme.brightness == Brightness.dark ? Colors.white : textColor,
-      ),
       actions: [
         if (itemCount > 0)
           IconButton(
@@ -220,10 +216,13 @@ class _CartScreenState extends ConsumerState<CartScreen>
                 borderRadius: BorderRadius.circular(8),
                 onTap: () {
                   final cartItems = ref.read(cartProvider);
-                  if (cartItems.isNotEmpty) {
-                    // Navigate to the storefront of the shop that has items in cart
-                    final shopSlug = cartItems.first.product.shopId;
-                    context.go('/$shopSlug');
+                  if (widget.shopSlug != null) {
+                    // Navigate back to the specific storefront
+                    context.go('/${widget.shopSlug}');
+                  } else if (cartItems.isNotEmpty) {
+                    // Fallback: try to get shop slug from cart items
+                    // This would require fetching shop data, for now just go to dashboard
+                    context.go('/dashboard');
                   } else {
                     // If cart is empty, go to dashboard
                     context.go('/dashboard');

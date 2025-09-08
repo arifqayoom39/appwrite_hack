@@ -21,6 +21,7 @@ class AppwriteService {
   static const String productsCollectionId = '68bbcf6800385fb2da69'; // Collection ID for products
   static const String ordersCollectionId = '68bbcbfc002ec6cfbb08'; // Collection ID for orders
   static const String imagesBucketId = '68bd2be60010ae4d0546'; // Bucket ID for product images
+  static const String profileImagesBucketId = '68bd2be60010ae4d0546'; // Bucket ID for profile images (using same bucket for now)
 
   static void init() {
     client = Client()
@@ -390,6 +391,68 @@ class AppwriteService {
       } catch (e) {
         print('Failed to delete image $fileId: $e');
       }
+    }
+  }
+
+  // Profile image methods
+  static Future<String> uploadProfileImage(PlatformFile imageFile, String userId) async {
+    try {
+      final fileName = 'profile_${userId}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final file = await storage.createFile(
+        bucketId: profileImagesBucketId,
+        fileId: ID.unique(),
+        file: InputFile.fromBytes(
+          bytes: imageFile.bytes!,
+          filename: fileName,
+        ),
+      );
+
+      // Update user data with profile image ID
+      await updateUserData(userId, {'profileImageId': file.$id});
+
+      return file.$id;
+    } catch (e) {
+      throw Exception('Failed to upload profile image: $e');
+    }
+  }
+
+  static Future<String> getProfileImageUrl(String fileId) async {
+    return 'https://fra.cloud.appwrite.io/v1/storage/buckets/$profileImagesBucketId/files/$fileId/view?project=$projectId';
+  }
+
+  static Future<String?> getUserProfileImageUrl(String userId) async {
+    try {
+      final userData = await getUserData(userId);
+      if (userData != null && userData.containsKey('profileImageId')) {
+        final fileId = userData['profileImageId'];
+        if (fileId != null && fileId.isNotEmpty) {
+          return await getProfileImageUrl(fileId);
+        }
+      }
+      return null;
+    } catch (e) {
+      print('Failed to get profile image URL: $e');
+      return null;
+    }
+  }
+
+  static Future<void> deleteProfileImage(String userId) async {
+    try {
+      final userData = await getUserData(userId);
+      if (userData != null && userData.containsKey('profileImageId')) {
+        final fileId = userData['profileImageId'];
+        if (fileId != null && fileId.isNotEmpty) {
+          await storage.deleteFile(
+            bucketId: profileImagesBucketId,
+            fileId: fileId,
+          );
+
+          // Remove profile image ID from user data
+          await updateUserData(userId, {'profileImageId': null});
+        }
+      }
+    } catch (e) {
+      throw Exception('Failed to delete profile image: $e');
     }
   }
 

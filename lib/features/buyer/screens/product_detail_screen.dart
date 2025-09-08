@@ -140,7 +140,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
         action: SnackBarAction(
           label: 'View Cart',
           textColor: Colors.white,
-          onPressed: () => context.go('/cart'),
+          onPressed: () => context.go('/cart?shopSlug=${widget.shop.slug}'),
         ),
       ),
     );
@@ -180,7 +180,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
         action: SnackBarAction(
           label: 'View Cart',
           textColor: Colors.white,
-          onPressed: () => context.go('/cart'),
+          onPressed: () => context.go('/cart?shopSlug=${widget.shop.slug}'),
         ),
       ),
     );

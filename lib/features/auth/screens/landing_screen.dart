@@ -19,6 +19,9 @@ class _LandingScreenState extends ConsumerState<LandingScreen>
   static const Color appwriteBlack = Color(0xFF000000);
   static const Color appwriteDarkGray = Color(0xFF0F0F0F);
   static const Color appwriteBorder = Color(0xFF1A1A1A);
+  static const Color appwriteGreen = Color(0xFF4CAF50);
+  
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   
   late AnimationController _heroAnimationController;
   late Animation<double> _heroFadeAnimation;
@@ -75,9 +78,11 @@ class _LandingScreenState extends ConsumerState<LandingScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: appwriteBlack,
       extendBodyBehindAppBar: true,
       appBar: _buildAppBar(),
+      endDrawer: _buildDrawer(),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -153,28 +158,44 @@ class _LandingScreenState extends ConsumerState<LandingScreen>
         ),
       ),
       actions: _isMobile ? [
-        if (isAuthenticated)
-          Container(
-            margin: const EdgeInsets.only(right: 8),
-            child: IconButton(
-              onPressed: () => context.go('/dashboard'),
-              icon: const Icon(Icons.dashboard, color: Colors.white),
-            ),
-          )
-        else ...[
-          IconButton(
-            onPressed: () => context.go('/login'),
-            icon: const Icon(Icons.login, color: Colors.white),
-          ),
-          Container(
-            margin: const EdgeInsets.only(right: 8),
-            child: IconButton(
-              onPressed: () => context.go('/signup'),
-              icon: const Icon(Icons.person_add, color: Colors.white),
-            ),
-          ),
-        ]
+        IconButton(
+          icon: const Icon(Icons.menu, color: Colors.white),
+          onPressed: () => _scaffoldKey.currentState?.openEndDrawer(),
+        ),
       ] : [
+        Container(
+          margin: const EdgeInsets.only(right: 16),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: appwriteGreen.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: appwriteGreen.withOpacity(0.3),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.psychology,
+                  color: appwriteGreen,
+                  size: 14,
+                ),
+                const SizedBox(width: 6),
+                const Text(
+                  'AI Coming Soon 🚀',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
         TextButton(
           onPressed: () => context.go('/features'),
           child: const Text(
@@ -263,6 +284,108 @@ class _LandingScreenState extends ConsumerState<LandingScreen>
           ),
         ],
       ],
+    );
+  }
+
+  Widget _buildDrawer() {
+    final authState = ref.watch(authStateProvider);
+    final isAuthenticated = authState == AuthState.authenticated;
+    
+    return Drawer(
+      backgroundColor: appwriteDarkGray,
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          DrawerHeader(
+            decoration: const BoxDecoration(
+              color: appwriteBlack,
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: appwritePink,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.storefront,
+                    size: 24,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                const Text(
+                  'StorePe',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 24,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          ListTile(
+            leading: Icon(Icons.speed, color: appwritePink),
+            title: const Text('Features', style: TextStyle(color: Colors.white)),
+            onTap: () {
+              Navigator.pop(context);
+              context.go('/features');
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.attach_money, color: appwritePink),
+            title: const Text('Pricing', style: TextStyle(color: Colors.white)),
+            onTap: () {
+              Navigator.pop(context);
+              context.go('/pricing');
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.info, color: appwritePink),
+            title: const Text('About', style: TextStyle(color: Colors.white)),
+            onTap: () {
+              Navigator.pop(context);
+              context.go('/about');
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.support, color: appwritePink),
+            title: const Text('Support', style: TextStyle(color: Colors.white)),
+            onTap: () {
+              Navigator.pop(context);
+              context.go('/support');
+            },
+          ),
+          if (!isAuthenticated) ...[
+            ListTile(
+              leading: Icon(Icons.login, color: appwritePink),
+              title: const Text('Sign In', style: TextStyle(color: Colors.white)),
+              onTap: () {
+                Navigator.pop(context);
+                context.go('/login');
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.rocket_launch, color: appwritePink),
+              title: const Text('Get Started', style: TextStyle(color: Colors.white)),
+              onTap: () {
+                Navigator.pop(context);
+                context.go('/signup');
+              },
+            ),
+          ] else
+            ListTile(
+              leading: Icon(Icons.dashboard, color: appwritePink),
+              title: const Text('Dashboard', style: TextStyle(color: Colors.white)),
+              onTap: () {
+                Navigator.pop(context);
+                context.go('/dashboard');
+              },
+            ),
+        ],
+      ),
     );
   }
 
@@ -405,26 +528,42 @@ class _LandingScreenState extends ConsumerState<LandingScreen>
         if (!isAuthenticated)
           Container(
             height: 56,
-            child: OutlinedButton.icon(
-              onPressed: () => context.go('/login'),
-              icon: const Icon(
-                Icons.play_circle_outline,
-                size: 20,
-              ),
-              label: const Text(
-                'Watch Demo',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
+            padding: EdgeInsets.symmetric(horizontal: _isMobile ? 24 : 32),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: appwriteGreen.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: appwriteGreen.withOpacity(0.3),
+                  width: 1,
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: appwriteGreen.withOpacity(0.2),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.white,
-                side: const BorderSide(color: appwriteBorder),
-                padding: EdgeInsets.symmetric(horizontal: _isMobile ? 24 : 32),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.psychology,
+                    color: appwriteGreen,
+                    size: 16,
+                  ),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'AI Features Coming Soon 🚀',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),

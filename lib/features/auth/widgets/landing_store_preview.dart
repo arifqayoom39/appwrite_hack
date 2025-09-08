@@ -181,7 +181,7 @@ class _LandingStorePreviewState extends State<LandingStorePreview>
                                 ),
                                 child: const Center(
                                   child: Text(
-                                    'yourstore.com',
+                                    'storepe.appwrite.network',
                                     style: TextStyle(
                                       color: Colors.white,
                                       fontSize: 12,

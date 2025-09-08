@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:file_picker/file_picker.dart';
 import '../../../providers/auth_provider.dart';
-import '../../../models/user_model.dart';
+import '../../../services/appwrite_service.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -13,6 +14,12 @@ class ProfileScreen extends ConsumerStatefulWidget {
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen>
     with TickerProviderStateMixin {
+  // Appwrite theme colors
+  static const Color appwritePink = Color(0xFFFD366E);
+  static const Color appwriteBlack = Color(0xFF000000);
+  static const Color appwriteDarkGray = Color(0xFF0F0F0F);
+  static const Color appwriteBorder = Color(0xFF1A1A1A);
+
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late AnimationController _scaleController;
@@ -24,6 +31,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
 
   bool _isLoading = false;
   bool _isEditing = false;
+  bool _isUploadingImage = false;
+  String? _profileImageUrl;
 
   @override
   void initState() {
@@ -68,6 +77,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     if (user != null) {
       _nameController.text = user.name;
       _emailController.text = user.email;
+
+      // Load profile image
+      try {
+        _profileImageUrl = await AppwriteService.getUserProfileImageUrl(user.id);
+      } catch (e) {
+        print('Failed to load profile image: $e');
+        _profileImageUrl = null;
+      }
     }
 
     setState(() {
@@ -75,42 +92,288 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     });
   }
 
+  Future<void> _pickAndUploadProfileImage() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.image,
+        allowMultiple: false,
+      );
+
+      if (result != null && result.files.isNotEmpty) {
+        final file = result.files.first;
+        if (file.bytes != null) {
+          setState(() {
+            _isUploadingImage = true;
+          });
+
+          final user = ref.read(currentUserProvider);
+          if (user != null) {
+            final fileId = await AppwriteService.uploadProfileImage(file, user.id);
+            final imageUrl = await AppwriteService.getProfileImageUrl(fileId);
+
+            setState(() {
+              _profileImageUrl = imageUrl;
+              _isUploadingImage = false;
+            });
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Profile image updated successfully!'),
+                backgroundColor: Color(0xFF10B981),
+              ),
+            );
+          }
+        }
+      }
+    } catch (e) {
+      setState(() {
+        _isUploadingImage = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to upload profile image: ${e.toString()}'),
+          backgroundColor: const Color(0xFFEF4444),
+        ),
+      );
+    }
+  }
+
+  Future<void> _deleteProfileImage() async {
+    try {
+      final user = ref.read(currentUserProvider);
+      if (user != null) {
+        await AppwriteService.deleteProfileImage(user.id);
+
+        setState(() {
+          _profileImageUrl = null;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Profile image removed successfully!'),
+            backgroundColor: Color(0xFF10B981),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to remove profile image: ${e.toString()}'),
+          backgroundColor: const Color(0xFFEF4444),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF0F172A),
-              Color(0xFF1E293B),
-              Color(0xFF334155),
-            ],
-          ),
-        ),
-        child: SafeArea(
-          child: FadeTransition(
-            opacity: _fadeAnimation,
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 40),
-                  _buildHeader(),
-                  const SizedBox(height: 48),
-                  _buildProfileForm(),
-                  const SizedBox(height: 32),
-                  _buildActionButtons(),
-                  const SizedBox(height: 100),
-                ],
+      backgroundColor: appwriteBlack,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: appwritePink,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                Icons.storefront,
+                size: 20,
+                color: Colors.white,
               ),
             ),
-          ),
+            const SizedBox(width: 12),
+            const Text(
+              'StorePe',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
+                color: Colors.white,
+              ),
+            ),
+          ],
         ),
+        actions: [
+          IconButton(
+            onPressed: _logout,
+            icon: const Icon(
+              Icons.logout,
+              color: Colors.white,
+            ),
+          ),
+        ],
+      ),
+      extendBodyBehindAppBar: true,
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isLargeScreen = constraints.maxWidth >= 768;
+
+          if (isLargeScreen) {
+            return Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    appwriteBlack,
+                    appwriteDarkGray,
+                    appwriteBlack,
+                  ],
+                  stops: const [0.0, 0.5, 1.0],
+                ),
+              ),
+              child: SingleChildScrollView(
+                child: Row(
+                  children: [
+                    // Left side - Profile Form
+                    Expanded(
+                      flex: 1,
+                      child: Container(
+                        constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                        padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 60),
+                        child: FadeTransition(
+                          opacity: _fadeAnimation,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              _buildHeader(),
+                              const SizedBox(height: 40),
+                              _buildProfileForm(),
+                              const SizedBox(height: 32),
+                              _buildActionButtons(),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    // Right side - Profile Image/Stats
+                    Expanded(
+                      flex: 1,
+                      child: Container(
+                        constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              appwriteDarkGray,
+                              appwriteBlack,
+                            ],
+                          ),
+                        ),
+                        child: Center(
+                          child: ScaleTransition(
+                            scale: _scaleAnimation,
+                            child: Container(
+                              margin: const EdgeInsets.all(40),
+                              constraints: const BoxConstraints(maxWidth: 500, maxHeight: 500),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(24),
+                                border: Border.all(
+                                  color: appwriteBorder,
+                                  width: 2,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: appwritePink.withOpacity(0.2),
+                                    blurRadius: 40,
+                                    offset: const Offset(0, 20),
+                                  ),
+                                ],
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(24),
+                                child: _profileImageUrl != null
+                                    ? Image.network(
+                                        _profileImageUrl!,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (context, error, stackTrace) {
+                                          return Container(
+                                            color: appwriteDarkGray,
+                                            child: const Center(
+                                              child: Icon(
+                                                Icons.person,
+                                                color: Colors.white54,
+                                                size: 80,
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      )
+                                    : Image.asset(
+                                        'assets/developer.jpeg',
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (context, error, stackTrace) {
+                                          return Container(
+                                            color: appwriteDarkGray,
+                                            child: const Center(
+                                              child: Icon(
+                                                Icons.person,
+                                                color: Colors.white54,
+                                                size: 80,
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          } else {
+            // Mobile/Tablet layout
+            return Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    appwriteBlack,
+                    appwriteDarkGray,
+                    appwriteBlack,
+                  ],
+                  stops: const [0.0, 0.5, 1.0],
+                ),
+              ),
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 20,
+                  ),
+                  child: FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const SizedBox(height: 20),
+                        _buildHeader(),
+                        const SizedBox(height: 32),
+                        _buildProfileForm(),
+                        const SizedBox(height: 32),
+                        _buildActionButtons(),
+                        const SizedBox(height: 20),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }
+        },
       ),
     );
   }
@@ -119,28 +382,79 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     return ScaleTransition(
       scale: _scaleAnimation,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFFFD366E), Color(0xFF7C3AED)],
-              ),
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFFFD366E).withOpacity(0.3),
-                  blurRadius: 20,
-                  offset: const Offset(0, 8),
+          Stack(
+            children: [
+              Container(
+                width: 120,
+                height: 120,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [appwritePink, const Color(0xFFE91E63)],
+                  ),
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: appwritePink.withOpacity(0.3),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            child: const Icon(
-              Icons.person,
-              color: Colors.white,
-              size: 32,
-            ),
+                child: _isUploadingImage
+                    ? const CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      )
+                    : _profileImageUrl != null
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: Image.network(
+                              _profileImageUrl!,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return const Icon(
+                                  Icons.person,
+                                  color: Colors.white,
+                                  size: 40,
+                                );
+                              },
+                            ),
+                          )
+                        : const Icon(
+                            Icons.person,
+                            color: Colors.white,
+                            size: 40,
+                          ),
+              ),
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: appwritePink,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: appwriteBlack,
+                      width: 3,
+                    ),
+                  ),
+                  child: IconButton(
+                    onPressed: _isUploadingImage ? null : _showImageOptions,
+                    icon: const Icon(
+                      Icons.camera_alt,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                    padding: EdgeInsets.zero,
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 24),
           const Text(
@@ -164,28 +478,101 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     );
   }
 
+  void _showImageOptions() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: appwriteDarkGray,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Profile Picture',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 24),
+              ListTile(
+                leading: const Icon(
+                  Icons.photo_camera,
+                  color: Colors.white,
+                ),
+                title: const Text(
+                  'Upload New Photo',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickAndUploadProfileImage();
+                },
+              ),
+              if (_profileImageUrl != null) ...[
+                const Divider(color: Colors.white24),
+                ListTile(
+                  leading: const Icon(
+                    Icons.delete,
+                    color: Color(0xFFEF4444),
+                  ),
+                  title: const Text(
+                    'Remove Photo',
+                    style: TextStyle(color: Color(0xFFEF4444)),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _deleteProfileImage();
+                  },
+                ),
+              ],
+              const SizedBox(height: 16),
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text(
+                  'Cancel',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildProfileForm() {
     final currentUser = ref.watch(currentUserProvider);
 
     if (_isLoading) {
       return const Center(
         child: CircularProgressIndicator(
-          color: Color(0xFFFD366E),
+          color: appwritePink,
         ),
       );
     }
 
     return Container(
+      constraints: const BoxConstraints(maxWidth: 500),
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: appwriteDarkGray,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: Colors.white.withOpacity(0.1),
+          color: appwriteBorder,
+          width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: appwritePink.withOpacity(0.1),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -272,8 +659,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
             width: double.infinity,
             height: 56,
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF10B981), Color(0xFF06B6D4)],
+              gradient: LinearGradient(
+                colors: [const Color(0xFF10B981), const Color(0xFF06B6D4)],
               ),
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
@@ -323,7 +710,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
             child: const Text(
               'Cancel',
               style: TextStyle(
-                color: Color(0xFFFD366E),
+                color: appwritePink,
                 fontSize: 16,
               ),
             ),
@@ -333,13 +720,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
             width: double.infinity,
             height: 56,
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFFFD366E), Color(0xFF7C3AED)],
+              gradient: LinearGradient(
+                colors: [appwritePink, const Color(0xFFE91E63)],
               ),
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFFFD366E).withOpacity(0.4),
+                  color: appwritePink.withOpacity(0.4),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),
@@ -394,10 +781,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: enabled ? Colors.white.withOpacity(0.05) : Colors.white.withOpacity(0.02),
+        color: enabled ? appwriteDarkGray : appwriteDarkGray.withOpacity(0.5),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Colors.white.withOpacity(0.1),
+          color: appwriteBorder,
+          width: 1,
         ),
       ),
       child: TextFormField(
@@ -423,25 +811,32 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   }
 
   Widget _buildInfoRow(String label, String value) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            color: Colors.white.withOpacity(0.7),
-            fontSize: 14,
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+      decoration: BoxDecoration(
+        color: appwriteDarkGray.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.7),
+              fontSize: 14,
+            ),
           ),
-        ),
-        Text(
-          value,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
+          Text(
+            value,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 

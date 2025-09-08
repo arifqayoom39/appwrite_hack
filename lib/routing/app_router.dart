@@ -70,7 +70,10 @@ class AppRouter {
       ),
       GoRoute(
         path: '/cart',
-        builder: (context, state) => const CartScreen(),
+        builder: (context, state) {
+          final shopSlug = state.uri.queryParameters['shopSlug'];
+          return CartScreen(shopSlug: shopSlug);
+        },
       ),
       GoRoute(
         path: '/order-details',

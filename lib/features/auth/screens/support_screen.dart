@@ -18,6 +18,7 @@ class _SupportScreenState extends ConsumerState<SupportScreen>
   static const Color appwriteBlack = Color(0xFF000000);
   static const Color appwriteDarkGray = Color(0xFF0F0F0F);
   static const Color appwriteBorder = Color(0xFF1A1A1A);
+  static const Color appwriteGreen = Color(0xFF4CAF50);
 
   late AnimationController _heroAnimationController;
   late Animation<double> _heroFadeAnimation;
@@ -175,6 +176,39 @@ class _SupportScreenState extends ConsumerState<SupportScreen>
           ),
         ]
       ] : [
+        Container(
+          margin: const EdgeInsets.only(right: 16),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: appwriteGreen.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: appwriteGreen.withOpacity(0.3),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.psychology,
+                  color: appwriteGreen,
+                  size: 14,
+                ),
+                const SizedBox(width: 6),
+                const Text(
+                  'AI Coming Soon 🚀',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
         if (isAuthenticated) ...[
           Container(
             margin: const EdgeInsets.only(right: 16),

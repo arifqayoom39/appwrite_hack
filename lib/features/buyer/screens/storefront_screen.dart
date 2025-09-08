@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lottie/lottie.dart';
 import '../../../services/appwrite_service.dart';
 import '../../../models/product_model.dart';
 import '../../../models/shop_model.dart';
 import '../../../providers/cart_provider.dart';
+import '../../../themes/shop_themes.dart';
 
 class StorefrontScreen extends StatefulWidget {
   final String shopSlug;
@@ -24,68 +26,13 @@ class _StorefrontScreenState extends State<StorefrontScreen> {
   String _selectedCategory = 'All';
   String _searchQuery = '';
 
-  // App colors
-  static const Color primaryColor = Color(0xFFFD366E);
-  static const Color backgroundColor = Colors.white;
-  static const Color textColor = Color(0xFF3D3D3D);
-  static const Color lightGrayColor = Color(0xFFF5F5F5);
-  static const Color darkGrayColor = Color(0xFF9E9E9E);
-
-  // Simplified theme - clean like Swiggy
-  final Map<String, ThemeData> _themes = {
-    'Light': ThemeData(
-      brightness: Brightness.light,
-      primaryColor: primaryColor,
-      scaffoldBackgroundColor: backgroundColor,
-      colorScheme: const ColorScheme.light(
-        primary: primaryColor,
-        secondary: primaryColor,
-        surface: Colors.white,
-        background: backgroundColor,
-        onBackground: textColor,
-      ),
-      cardTheme: const CardTheme(
-        color: Colors.white,
-        elevation: 0,
-      ),
-      appBarTheme: const AppBarTheme(
-        backgroundColor: Colors.white,
-        elevation: 0.5,
-        iconTheme: IconThemeData(color: textColor),
-      ),
-      textTheme: const TextTheme(
-        titleLarge: TextStyle(color: textColor, fontWeight: FontWeight.w600),
-        bodyLarge: TextStyle(color: textColor),
-        bodyMedium: TextStyle(color: textColor),
-      ),
-    ),
-    'Dark': ThemeData(
-      brightness: Brightness.dark,
-      primaryColor: primaryColor,
-      scaffoldBackgroundColor: const Color(0xFF121212),
-      colorScheme: const ColorScheme.dark(
-        primary: primaryColor,
-        secondary: primaryColor,
-        surface: Color(0xFF1E1E1E),
-        background: Color(0xFF121212),
-        onBackground: Colors.white,
-      ),
-      cardTheme: const CardTheme(
-        color: Color(0xFF1E1E1E),
-        elevation: 0,
-      ),
-      appBarTheme: const AppBarTheme(
-        backgroundColor: Color(0xFF1E1E1E),
-        elevation: 0.5,
-        iconTheme: IconThemeData(color: Colors.white),
-      ),
-      textTheme: const TextTheme(
-        titleLarge: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-        bodyLarge: TextStyle(color: Colors.white),
-        bodyMedium: TextStyle(color: Colors.white70),
-      ),
-    ),
-  };
+  // Theme variables will be initialized from ShopThemes based on shop's theme
+  late Color primaryColor;
+  late Color backgroundColor;
+  late Color textColor;
+  late Color lightGrayColor;
+  late Color darkGrayColor;
+  late Map<String, ThemeData> _themes;
 
   @override
   void initState() {
@@ -111,6 +58,20 @@ class _StorefrontScreenState extends State<StorefrontScreen> {
       }
 
       _shop = shop;
+
+      // Initialize theme based on shop's theme
+      final shopTheme = shop.theme;
+      final palette = ShopThemes.getBuyerThemePalette(shopTheme);
+      
+      // Set colors based on shop theme
+      primaryColor = palette['primary']!;
+      backgroundColor = palette['background']!;
+      textColor = palette['text']!;
+      lightGrayColor = palette['lightGray']!;
+      darkGrayColor = palette['darkGray']!;
+      
+      // Set theme data
+      _themes = ShopThemes.getBuyerThemes(shopTheme);
 
       // Get products for this shop
       final products = await AppwriteService.getProductsByShop(shop.id);
@@ -155,14 +116,80 @@ class _StorefrontScreenState extends State<StorefrontScreen> {
   // Helper to check if on mobile device
   bool isMobile(BuildContext context) => MediaQuery.of(context).size.width < 600;
 
+  // Get psychological loading message
+  String _getPsychologicalMessage() {
+    final messages = [
+      'Preparing something amazing...',
+      'Your experience is loading...',
+      'Almost ready to impress...',
+      'Creating magic for you...',
+      'Your journey begins soon...',
+      'Getting everything ready...',
+      'Loading your perfect experience...',
+    ];
+
+    return messages[DateTime.now().millisecondsSinceEpoch % messages.length];
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(
+      return Scaffold(
         backgroundColor: Colors.white,
         body: Center(
-          child: CircularProgressIndicator(
-            color: primaryColor,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Lottie Animation
+              SizedBox(
+                width: 200,
+                height: 200,
+                child: Lottie.asset(
+                  'assets/loading.json',
+                  fit: BoxFit.contain,
+                  repeat: true,
+                ),
+              ),
+              const SizedBox(height: 24),
+              
+              // Psychological Message
+              AnimatedOpacity(
+                opacity: 1.0,
+                duration: const Duration(milliseconds: 500),
+                child: Text(
+                  _getPsychologicalMessage(),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF3D3D3D),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              
+              const SizedBox(height: 16),
+              
+              // Loading dots animation
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(
+                  3,
+                  (index) => AnimatedOpacity(
+                    opacity: 1.0,
+                    duration: Duration(milliseconds: 500 + (index * 200)),
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFFD366E),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       );
@@ -183,14 +210,14 @@ class _StorefrontScreenState extends State<StorefrontScreen> {
               const SizedBox(height: 16),
               Text(
                 _error!,
-                style: TextStyle(color: textColor),
+                style: const TextStyle(color: Color(0xFF3D3D3D)),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _loadShopData,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: primaryColor,
+                  backgroundColor: const Color(0xFFFD366E), // Default primary color
                   foregroundColor: Colors.white,
                   elevation: 0,
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -222,7 +249,7 @@ class _StorefrontScreenState extends State<StorefrontScreen> {
             if (itemCount == 0) return const SizedBox.shrink();
 
             return FloatingActionButton.extended(
-              onPressed: () => context.go('/cart'),
+              onPressed: () => context.go('/cart?shopSlug=${widget.shopSlug}'),
               backgroundColor: primaryColor,
               foregroundColor: Colors.white,
               icon: const Icon(Icons.shopping_cart),
@@ -284,7 +311,7 @@ class _StorefrontScreenState extends State<StorefrontScreen> {
                   size: 22,
                 ),
               ),
-              onPressed: () => context.go('/cart'),
+              onPressed: () => context.go('/cart?shopSlug=${widget.shopSlug}'),
             );
           },
         ),

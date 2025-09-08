@@ -45,10 +45,6 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-        ),
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -104,7 +100,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                       flex: 1,
                       child: Container(
                         constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                        padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 60),
+                        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 40),
                         child: Form(
                           key: _formKey,
                           child: Column(
@@ -112,9 +108,9 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               _buildHeader(),
-                              const SizedBox(height: 40),
-                              _buildSignupForm(),
                               const SizedBox(height: 24),
+                              _buildSignupForm(),
+                              const SizedBox(height: 16),
                               _buildFooter(),
                             ],
                           ),
@@ -138,24 +134,24 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                         ),
                         child: Center(
                           child: Container(
-                            margin: const EdgeInsets.all(40),
-                            constraints: const BoxConstraints(maxWidth: 500, maxHeight: 500),
+                            margin: const EdgeInsets.all(20),
+                            constraints: const BoxConstraints(minWidth: 400, minHeight: 400),
                             decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(24),
+                              borderRadius: BorderRadius.circular(16),
                               border: Border.all(
                                 color: appwriteBorder,
-                                width: 2,
+                                width: 1,
                               ),
                               boxShadow: [
                                 BoxShadow(
                                   color: appwritePink.withOpacity(0.2),
-                                  blurRadius: 40,
+                                  blurRadius: 10,
                                   offset: const Offset(0, 20),
                                 ),
                               ],
                             ),
                             child: ClipRRect(
-                              borderRadius: BorderRadius.circular(24),
+                              borderRadius: BorderRadius.circular(16),
                               child: Image.asset(
                                 'assets/signup.png',
                                 fit: BoxFit.cover,
@@ -199,7 +195,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
               child: SingleChildScrollView(
                 child: Padding(
                   padding: EdgeInsets.symmetric(
-                    horizontal: isTablet ? 60 : 20,
+                    horizontal: isTablet ? 40 : 16,
                     vertical: 20,
                   ),
                   child: Form(
@@ -209,11 +205,11 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                       children: [
                         const SizedBox(height: 20),
                         _buildHeader(),
-                        const SizedBox(height: 32),
-                        _buildSignupForm(),
                         const SizedBox(height: 24),
+                        _buildSignupForm(),
+                        const SizedBox(height: 16),
                         _buildFooter(),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 16),
                       ],
                     ),
                   ),
@@ -238,7 +234,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   Widget _buildSignupForm() {
     return Container(
       constraints: const BoxConstraints(maxWidth: 500),
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: appwriteDarkGray,
         borderRadius: BorderRadius.circular(16),
@@ -249,7 +245,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
         boxShadow: [
           BoxShadow(
             color: appwritePink.withOpacity(0.1),
-            blurRadius: 20,
+            blurRadius: 16,
             offset: const Offset(0, 8),
           ),
         ],
@@ -265,7 +261,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
               color: Colors.white,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Text(
             'Create your seller account to get started',
             style: TextStyle(
@@ -273,7 +269,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
               color: Colors.white.withOpacity(0.6),
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
 
           // Full Name Field
           _buildModernTextField(
@@ -291,7 +287,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
               return null;
             },
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
 
           // Email Field
           _buildModernTextField(
@@ -310,7 +306,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
               return null;
             },
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
 
           // Password Field
           _buildModernTextField(
@@ -343,7 +339,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
               return null;
             },
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
 
           // Confirm Password Field
           _buildModernTextField(
@@ -373,11 +369,11 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
               return null;
             },
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
 
           // Password Strength Indicator
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: appwriteBlack,
               borderRadius: BorderRadius.circular(12),
@@ -417,7 +413,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
               ],
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
 
           // Terms and Conditions
           Row(
@@ -464,12 +460,12 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
 
           // Sign Up Button
           Container(
             width: double.infinity,
-            height: 56,
+            height: 48,
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [appwritePink, const Color(0xFFE91E63)],
@@ -478,7 +474,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
               boxShadow: [
                 BoxShadow(
                   color: appwritePink.withOpacity(0.3),
-                  blurRadius: 12,
+                  blurRadius: 8,
                   offset: const Offset(0, 4),
                 ),
               ],
@@ -577,7 +573,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
           labelStyle: TextStyle(color: Colors.white.withOpacity(0.7)),
           hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.all(16),
+          contentPadding: const EdgeInsets.all(12),
           errorStyle: const TextStyle(
             color: Color(0xFFEF4444),
             fontSize: 12,

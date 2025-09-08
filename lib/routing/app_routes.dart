@@ -27,8 +27,12 @@ class AppRoutes {
     context.goNamed(storefront, pathParameters: {'shopSlug': shopSlug});
   }
 
-  static void goToCart(BuildContext context) {
-    context.go(cart);
+  static void goToCart(BuildContext context, {String? shopSlug}) {
+    if (shopSlug != null) {
+      context.go('$cart?shopSlug=$shopSlug');
+    } else {
+      context.go(cart);
+    }
   }
 
   static void goToLanding(BuildContext context) {
