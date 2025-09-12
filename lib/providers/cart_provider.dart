@@ -27,6 +27,11 @@ class CartNotifier extends StateNotifier<List<CartItem>> {
   CartNotifier() : super([]);
 
   void addItem(Product product, int quantity) {
+    // Validate stock availability
+    if (product.stock < quantity) {
+      throw Exception('Insufficient stock. Available: ${product.stock}, Requested: $quantity');
+    }
+
     final existingIndex = state.indexWhere(
       (item) => item.product.id == product.id,
     );
@@ -34,10 +39,17 @@ class CartNotifier extends StateNotifier<List<CartItem>> {
     if (existingIndex >= 0) {
       // Update existing item
       final existingItem = state[existingIndex];
+      final newQuantity = existingItem.quantity + quantity;
+
+      // Check if total quantity exceeds stock
+      if (product.stock < newQuantity) {
+        throw Exception('Insufficient stock. Available: ${product.stock}, Total requested: $newQuantity');
+      }
+
       state = [
         ...state.sublist(0, existingIndex),
         existingItem.copyWith(
-          quantity: existingItem.quantity + quantity,
+          quantity: newQuantity,
         ),
         ...state.sublist(existingIndex + 1),
       ];

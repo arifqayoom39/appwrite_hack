@@ -293,11 +293,6 @@ class _StorefrontScreenState extends State<StorefrontScreen> {
           color: theme.brightness == Brightness.dark ? Colors.white : textColor,
         ),
       ),
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back),
-        onPressed: () => Navigator.pop(context),
-        color: theme.brightness == Brightness.dark ? Colors.white : textColor,
-      ),
       actions: [
         Consumer(
           builder: (context, ref, child) {
@@ -630,10 +625,13 @@ class _StorefrontScreenState extends State<StorefrontScreen> {
 
   Widget _buildProductCard(Product product, ThemeData theme) {
     final hasSale = product.salePrice != null && product.salePrice! < product.price;
+    final isOutOfStock = product.stock <= 0;
 
     return GestureDetector(
-      onTap: () => _showProductDetails(product),
-      child: Column(
+      onTap: isOutOfStock ? null : () => _showProductDetails(product),
+      child: Opacity(
+        opacity: isOutOfStock ? 0.5 : 1.0,
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Product Image
@@ -724,9 +722,22 @@ class _StorefrontScreenState extends State<StorefrontScreen> {
               ),
             ],
           ),
+
+          // Out of stock text
+          if (isOutOfStock) ...[
+            const SizedBox(height: 4),
+            Text(
+              'Out of Stock',
+              style: TextStyle(
+                color: const Color(0xFFE53935),
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
         ],
       ),
-    );
+    ));
   }
 
   void _showProductDetails(Product product) {

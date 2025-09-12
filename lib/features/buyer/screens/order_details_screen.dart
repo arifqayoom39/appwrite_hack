@@ -153,12 +153,23 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
       // Get current user (optional - allow guest orders)
       final user = await AppwriteService.getCurrentUser();
 
-      // Validate all cart items have required data
+      // Validate all cart items have required data and sufficient stock
       for (final item in cartItems) {
         if (item.product.sellerId.isEmpty || item.product.shopId.isEmpty) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Some products have incomplete information. Please remove them and try again.'),
+              backgroundColor: Color(0xFFEF4444),
+            ),
+          );
+          return;
+        }
+
+        // Check if there's sufficient stock
+        if (item.product.stock < item.quantity) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Insufficient stock for ${item.product.name}. Available: ${item.product.stock}, Requested: ${item.quantity}'),
               backgroundColor: Color(0xFFEF4444),
             ),
           );
@@ -213,10 +224,41 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
       // Create order in database
       final createdOrder = await AppwriteService.createOrder(order);
 
+      // Update product stock quantities
+      bool stockUpdateFailed = false;
+      for (final item in cartItems) {
+        try {
+          final newStock = item.product.stock - item.quantity;
+          if (newStock < 0) {
+            // This shouldn't happen if validation is correct, but handle it just in case
+            print('Warning: Stock would go negative for product ${item.product.id}');
+            continue;
+          }
+          await AppwriteService.updateProduct(item.product.id, {
+            'stock': newStock,
+            'updatedAt': DateTime.now().toIso8601String(),
+          });
+        } catch (e) {
+          print('Failed to update stock for product ${item.product.id}: $e');
+          stockUpdateFailed = true;
+        }
+      }
+
       // Clear cart
       ref.read(cartProvider.notifier).clearCart();
 
       if (mounted) {
+        // Show warning if stock update failed
+        if (stockUpdateFailed) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Order placed successfully, but there was an issue updating inventory. Please contact support if you notice discrepancies.'),
+              backgroundColor: Color(0xFFF59E0B), // Amber color for warning
+              duration: Duration(seconds: 5),
+            ),
+          );
+        }
+
         // Navigate to order success screen
         context.go('/order-success/${createdOrder.id}');
       }
